@@ -1,0 +1,8 @@
+mode: development
+server:
+  host: localhost
+  post: 8888
+db:
+  postgres:
+    host: localhost
+    port: 5432
