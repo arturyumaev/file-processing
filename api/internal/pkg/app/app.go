@@ -19,7 +19,7 @@ type app struct {
 	server *http.Server
 }
 
-func New(config *config.Config) (*app, error) {
+func New(config *config.Config) *app {
 	r := gin.Default()
 
 	repository := fileInfoRepository.New()
@@ -36,7 +36,7 @@ func New(config *config.Config) (*app, error) {
 
 	app := &app{server}
 
-	return app, nil
+	return app
 }
 
 func (a *app) Run() error {
