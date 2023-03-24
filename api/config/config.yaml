@@ -1,6 +1,6 @@
 mode: development
 server:
-  post: 8888
+  port: 8888
 db:
   postgres:
     host: localhost

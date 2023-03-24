@@ -9,13 +9,12 @@ import (
 type Config struct {
 	Mode   string `json:"mode"`
 	Server struct {
-		Host string `yaml:"host"`
-		Port string `yaml:"port"`
+		Port int `yaml:"port"`
 	} `yaml:"server"`
 	DB struct {
 		Postgres struct {
 			Host string `yaml:"host"`
-			Port string `yaml:"port"`
+			Port int    `yaml:"port"`
 		} `yaml:"postgres"`
 	} `yaml:"db"`
 }

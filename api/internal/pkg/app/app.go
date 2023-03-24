@@ -2,6 +2,7 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -27,7 +28,7 @@ func New(config *config.Config) *app {
 	fileInfoHandler.RegisterHandlers(r, fileInfoService)
 
 	server := &http.Server{
-		Addr:           ":" + config.Server.Port,
+		Addr:           fmt.Sprintf(":%d", config.Server.Port),
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -40,7 +41,7 @@ func New(config *config.Config) *app {
 }
 
 func (a *app) Run() error {
-	log.Println("server started")
+	log.Println("server is running...")
 
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
