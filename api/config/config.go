@@ -1,6 +1,6 @@
 package config
 
-type config struct {
+type Config struct {
 	Mode   string `json:"mode"`
 	Server struct {
 		Host string `yaml:"host"`
@@ -14,8 +14,8 @@ type config struct {
 	} `yaml:"db"`
 }
 
-func New() *config {
-	return &config{}
+func New() *Config {
+	return &Config{}
 }
 
 // func readConfig(path string) (*config, error) {

@@ -4,19 +4,19 @@ import (
 	"github.com/google/uuid"
 )
 
-type Status string
+type FileInfoStatus string
 
 const (
-	StatusRecieved   Status = "recieved"
-	StatusInQueue    Status = "in_queue"
-	StatusProcessing Status = "processing"
-	StatusDone       Status = "done"
-	StatusError      Status = "error"
+	FileInfoStatusRecieved   FileInfoStatus = "recieved"
+	FileInfoStatusInQueue    FileInfoStatus = "in_queue"
+	FileInfoStatusProcessing FileInfoStatus = "processing"
+	FileInfoStatusDone       FileInfoStatus = "done"
+	FileInfoStatusError      FileInfoStatus = "error"
 )
 
 type FileInfo struct {
-	Id        uuid.UUID `json:"uuid"`
-	Hash      string    `json:"hash"`
-	Status    Status    `json:"status"`
-	TimeStamp int64     `json:"timestamp"`
+	Id        uuid.UUID      `json:"uuid"`
+	Hash      string         `json:"hash"`
+	Status    FileInfoStatus `json:"status"`
+	TimeStamp int64          `json:"timestamp"`
 }
