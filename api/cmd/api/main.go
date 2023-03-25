@@ -2,9 +2,9 @@ package main
 
 import (
 	"flag"
-	"log"
 
 	"github.com/arturyumaev/file-processing/api/config"
+	"github.com/arturyumaev/file-processing/api/internal/logger"
 	"github.com/arturyumaev/file-processing/api/internal/pkg/app"
 )
 
@@ -25,15 +25,16 @@ func parseFlags() *Flags {
 }
 
 func main() {
+	logger := logger.GetLogger().Error()
 	flags := parseFlags()
 
 	cfg, err := config.Read(flags.ConfigPath)
 	if err != nil {
-		log.Fatalf(err.Error())
+		logger.Msg(err.Error())
 	}
 
 	app := app.New(cfg)
 	if err = app.Run(); err != nil {
-		log.Fatalf(err.Error())
+		logger.Msg(err.Error())
 	}
 }

@@ -3,7 +3,6 @@ package app
 import (
 	"context"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,15 +12,26 @@ import (
 	fileInfoHandler "github.com/arturyumaev/file-processing/api/internal/file_info/handler"
 	fileInfoRepository "github.com/arturyumaev/file-processing/api/internal/file_info/repository"
 	fileInfoService "github.com/arturyumaev/file-processing/api/internal/file_info/service"
+	"github.com/arturyumaev/file-processing/api/internal/logger"
+	"github.com/arturyumaev/file-processing/api/internal/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 type app struct {
 	server *http.Server
+	config *config.Config
 }
 
 func New(config *config.Config) *app {
-	r := gin.Default()
+	if config.IsProduction() {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+
+	r := gin.New()
+	r.Use(gin.Recovery())
+	r.Use(middleware.Logger())
 
 	repository := fileInfoRepository.New()
 	fileInfoService := fileInfoService.New(repository)
@@ -35,19 +45,20 @@ func New(config *config.Config) *app {
 		MaxHeaderBytes: 1 << 20,
 	}
 
-	app := &app{server}
+	app := &app{server, config}
 
 	return app
 }
 
 func (a *app) Run() error {
-	log.Println("server is running...")
+	logger := logger.GetLogger()
 
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
-			log.Fatalf("failed to listen and serve: %+v", err)
+			logger.Error().Msgf("failed to listen and serve: %+v", err)
 		}
 	}()
+	logger.Info().Msgf("server started at :%d", a.config.Server.Port)
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Interrupt)

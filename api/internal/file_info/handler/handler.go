@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"log"
 	"net/http"
 
 	"github.com/arturyumaev/file-processing/api/internal/file_info"
@@ -19,7 +18,6 @@ func (h *handler) GetFileInfo(c *gin.Context) {
 
 	file, err := h.svc.GetFileInfo(ctx, filename)
 	if err != nil {
-		log.Println(err.Error())
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})

@@ -36,3 +36,7 @@ func Read(path string) (*Config, error) {
 
 	return config, nil
 }
+
+func (c *Config) IsProduction() bool {
+	return c.Mode == "production"
+}
