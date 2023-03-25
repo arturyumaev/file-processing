@@ -14,12 +14,20 @@ func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		timeStart := time.Now()
 		path := c.Request.URL.Path
-		raw := c.Request.URL.RawQuery
-		if raw != "" {
-			path = path + "?" + raw
+		rawQuery := c.Request.URL.RawQuery
+		if rawQuery != "" {
+			path = path + "?" + rawQuery
 		}
 
 		c.Next()
+
+		var rawRequestId interface{}
+		var requestId string
+		rawRequestId, exists := c.Get(ContextKeyRequestID)
+		if !exists {
+			requestId = ""
+		}
+		requestId = rawRequestId.(string)
 
 		timeAfter := time.Now()
 		latency := timeAfter.Sub(timeStart)
@@ -43,6 +51,7 @@ func Logger() gin.HandlerFunc {
 			Int("body_size", bodySize).
 			Str("path", path).
 			Str("latency", latency.String()).
+			Str("request_id", requestId).
 			Msg(errorMessage)
 	}
 }

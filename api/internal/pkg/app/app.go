@@ -31,11 +31,12 @@ func New(config *config.Config) *app {
 
 	r := gin.New()
 	r.Use(gin.Recovery())
+	r.Use(middleware.RequestId())
 	r.Use(middleware.Logger())
 
 	repository := fileInfoRepository.New()
-	fileInfoService := fileInfoService.New(repository)
-	fileInfoHandler.RegisterHandlers(r, fileInfoService)
+	service := fileInfoService.New(repository)
+	fileInfoHandler.RegisterHandlers(r, service)
 
 	server := &http.Server{
 		Addr:           fmt.Sprintf(":%d", config.Server.Port),
