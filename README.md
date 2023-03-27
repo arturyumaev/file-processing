@@ -1,6 +1,3 @@
-# file-processing
-REST written in Go for file processing
-
 # postgres
 
 Create postgres container and forward port to :9999

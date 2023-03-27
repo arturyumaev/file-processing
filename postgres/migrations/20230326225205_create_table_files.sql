@@ -9,7 +9,7 @@ create type file_status as enum (
 );
 
 create table files (
-  id        varchar(16) not null,
+  id        varchar(36) not null primary key,
   status    file_status not null,
   timestamp timestamp   not null,
   hash      text        not null
