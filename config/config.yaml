@@ -1,0 +1,4 @@
+mode: production
+# mode: development
+server:
+  port: 8888

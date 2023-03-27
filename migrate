@@ -1,0 +1,9 @@
+export $(cat .env | xargs)
+
+if [ $1 = 'up' ]
+then
+  goose -dir ./migrations up
+elif [ $1 == 'down' ]
+then
+  goose -dir ./migrations down
+fi
