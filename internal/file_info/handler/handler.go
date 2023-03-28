@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/arturyumaev/file-processing/api/internal/file_info"
@@ -14,9 +13,15 @@ type handler struct {
 
 func (h *handler) GetFileInfo(c *gin.Context) {
 	filename := c.Param("name")
-	ctx := context.Background()
 
-	file, err := h.svc.GetFileInfo(ctx, filename)
+	if filename == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"error": file_info.ErrNoFileNameSpecified.Error(),
+		})
+		return
+	}
+
+	file, err := h.svc.GetFileInfo(c.Request.Context(), filename)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),

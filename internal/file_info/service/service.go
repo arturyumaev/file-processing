@@ -12,7 +12,7 @@ type service struct {
 }
 
 func (svc *service) GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error) {
-	return svc.r.GetFileInfo(ctx)
+	return svc.r.GetFileInfo(ctx, name)
 }
 
 func New(repository file_info.Repository) file_info.Service {

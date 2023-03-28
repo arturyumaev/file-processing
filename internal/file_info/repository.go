@@ -7,5 +7,5 @@ import (
 )
 
 type Repository interface {
-	GetFileInfo(ctx context.Context) (*models.FileInfo, error)
+	GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error)
 }

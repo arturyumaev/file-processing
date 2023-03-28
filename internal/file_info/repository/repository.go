@@ -13,7 +13,7 @@ type repository struct {
 	db *sql.DB
 }
 
-func (r *repository) GetFileInfo(ctx context.Context) (*models.FileInfo, error) {
+func (r *repository) GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error) {
 	fileInfo := &models.FileInfo{
 		Id:     uuid.New(),
 		Hash:   "test hash",

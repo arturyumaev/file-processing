@@ -3,9 +3,9 @@
 create procedure gen_data(s file_status, h text)
 language plpgsql as $$
 begin
-  insert into files (status, timestamp, hash)
+  insert into files (status, filename_hash)
     values
-      (s, (select clock_timestamp()), h);
+      (s, encode(digest(h, 'md5'), 'hex'));
 
   perform pg_sleep(2);
 end $$;
