@@ -10,17 +10,17 @@ begin
   perform pg_sleep(2);
 end $$;
 
-call gen_data('recieved',   'hash1');
-call gen_data('in_queue',   'hash1');
-call gen_data('processing', 'hash1');
-call gen_data('processing', 'hash1');
-call gen_data('done',       'hash1');
+call gen_data('recieved',   'file1');
+call gen_data('in_queue',   'file1');
+call gen_data('processing', 'file1');
+call gen_data('processing', 'file1');
+call gen_data('done',       'file1');
 
-call gen_data('recieved', 'hash2');
-call gen_data('error',    'hash2');
+call gen_data('recieved', 'file2');
+call gen_data('error',    'file2');
 
-call gen_data('recieved', 'hash3');
-call gen_data('in_queue', 'hash3');
+call gen_data('recieved', 'file3');
+call gen_data('in_queue', 'file3');
 -- +goose StatementEnd
 
 -- +goose Down
