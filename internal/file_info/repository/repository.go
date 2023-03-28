@@ -2,27 +2,42 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 
 	"github.com/arturyumaev/file-processing/api/internal/file_info"
+	"github.com/arturyumaev/file-processing/api/internal/file_info/queries"
 	"github.com/arturyumaev/file-processing/api/models"
-	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type repository struct {
-	db *sql.DB
+	conn *pgx.Conn
 }
 
-func (r *repository) GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error) {
-	fileInfo := &models.FileInfo{
-		Id:     uuid.New(),
-		Hash:   "test hash",
-		Status: models.FileInfoStatusInQueue,
+func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo, error) {
+	fileInfo := &models.FileInfo{}
+
+	err := r.conn.
+		QueryRow(ctx, queries.SelectFileInfo, name).
+		Scan(
+			&fileInfo.Id,
+			&fileInfo.Status,
+			&fileInfo.TimeStamp,
+			&fileInfo.FilenameHash,
+		)
+	if err == pgx.ErrNoRows {
+		return nil, file_info.ErrNoSuchFile
+	} else if err != nil {
+		return nil, err
 	}
 
 	return fileInfo, nil
 }
 
-func New(db *sql.DB) file_info.Repository {
-	return &repository{db}
+func (r *repository) FindAll(ctx context.Context) ([]*models.FileInfo, error) {
+	all := []*models.FileInfo{}
+	return all, nil
+}
+
+func New(conn *pgx.Conn) file_info.Repository {
+	return &repository{conn}
 }

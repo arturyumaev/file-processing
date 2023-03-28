@@ -16,6 +16,7 @@ import (
 	"github.com/arturyumaev/file-processing/api/pkg/client/postgres"
 	"github.com/arturyumaev/file-processing/api/pkg/logger"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
 )
 
@@ -23,6 +24,7 @@ type app struct {
 	server *http.Server
 	config *config.Config
 	log    *zerolog.Logger
+	conn   *pgx.Conn // TODO: can be updated to interface
 }
 
 func New(config *config.Config) *app {
@@ -39,15 +41,15 @@ func New(config *config.Config) *app {
 	r.Use(middleware.RequestId())
 	r.Use(middleware.Logger())
 
-	db, err := postgres.NewClient()
+	ctx := context.Background()
+	conn, err := postgres.NewClient(ctx)
 	if err != nil {
 		panic(err)
 	} else {
 		log.Info().Msg("connected to postgres")
 	}
-	defer db.Close()
 
-	repository := fileInfoRepository.New(db)
+	repository := fileInfoRepository.New(conn)
 	service := fileInfoService.New(repository)
 	fileInfoHandler.RegisterHandlers(r, service)
 
@@ -63,12 +65,15 @@ func New(config *config.Config) *app {
 		server,
 		config,
 		log,
+		conn,
 	}
 
 	return app
 }
 
 func (a *app) Run() error {
+	defer a.conn.Close(context.Background())
+
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
 			a.log.Error().Msgf("failed to listen and serve: %+v", err)

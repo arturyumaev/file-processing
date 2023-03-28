@@ -1,3 +1,5 @@
+include .env
+
 all: clean build run
 
 build:

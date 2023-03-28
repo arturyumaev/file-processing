@@ -7,5 +7,6 @@ import (
 )
 
 type Repository interface {
-	GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error)
+	FindOne(ctx context.Context, name string) (*models.FileInfo, error)
+	FindAll(ctx context.Context) ([]*models.FileInfo, error)
 }

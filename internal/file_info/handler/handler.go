@@ -14,13 +14,6 @@ type handler struct {
 func (h *handler) GetFileInfo(c *gin.Context) {
 	filename := c.Param("name")
 
-	if filename == "" {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": file_info.ErrNoFileNameSpecified.Error(),
-		})
-		return
-	}
-
 	file, err := h.svc.GetFileInfo(c.Request.Context(), filename)
 	if err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{

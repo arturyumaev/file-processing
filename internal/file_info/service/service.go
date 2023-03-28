@@ -12,11 +12,9 @@ type service struct {
 }
 
 func (svc *service) GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error) {
-	return svc.r.GetFileInfo(ctx, name)
+	return svc.r.FindOne(ctx, name)
 }
 
-func New(repository file_info.Repository) file_info.Service {
-	return &service{
-		r: repository,
-	}
+func New(r file_info.Repository) file_info.Service {
+	return &service{r}
 }

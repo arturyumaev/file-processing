@@ -1,11 +1,12 @@
 package postgres
 
 import (
-	"database/sql"
+	"context"
 	"fmt"
 	"os"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 )
 
@@ -22,7 +23,7 @@ const (
 	CONN_DELAY        = 3 * time.Second
 )
 
-func NewClient() (db *sql.DB, err error) {
+func NewClient(ctx context.Context) (conn *pgx.Conn, err error) {
 	connString := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		user,
@@ -33,7 +34,7 @@ func NewClient() (db *sql.DB, err error) {
 	)
 
 	err = connectWithTries(func() error {
-		db, err = sql.Open("postgres", connString)
+		conn, err = pgx.Connect(ctx, connString)
 		if err != nil {
 			return err
 		}
