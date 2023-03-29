@@ -8,3 +8,4 @@ type HttpResponseErr struct {
 
 var ErrNoFileNameSpecified = errors.New("no file name specified")
 var ErrNoSuchFile = errors.New("no such file")
+var ErrRequestTimeoutReached = errors.New("request timeout reached")

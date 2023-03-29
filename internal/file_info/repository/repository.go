@@ -2,11 +2,13 @@ package repository
 
 import (
 	"context"
+	"time"
+
+	"github.com/jackc/pgx/v5"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
 	"github.com/arturyumaev/file-processing/internal/file_info/queries"
 	"github.com/arturyumaev/file-processing/models"
-	"github.com/jackc/pgx/v5"
 )
 
 type repository struct {
@@ -15,6 +17,10 @@ type repository struct {
 
 func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo, error) {
 	fileInfo := &models.FileInfo{}
+
+	if name == "file3" {
+		time.Sleep(10 * time.Second)
+	}
 
 	err := r.conn.
 		QueryRow(ctx, queries.SelectFileInfo, name).

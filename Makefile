@@ -23,6 +23,7 @@ clean:
 	go clean
 
 swagger:
+	rm -rf docs
 	swag init -g cmd/api/main.go
 
 test:

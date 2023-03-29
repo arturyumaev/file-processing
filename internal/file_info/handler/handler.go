@@ -3,8 +3,9 @@ package handler
 import (
 	"net/http"
 
-	"github.com/arturyumaev/file-processing/internal/file_info"
 	"github.com/gin-gonic/gin"
+
+	"github.com/arturyumaev/file-processing/internal/file_info"
 )
 
 type handler struct {
@@ -20,6 +21,7 @@ type handler struct {
 // @Success      200  {object}  models.FileInfo
 // @Failure      400  {object}  file_info.HttpResponseErr
 // @Failure      404  {object}  file_info.HttpResponseErr
+// @Failure      408  {object}  file_info.HttpResponseErr
 // @Failure      500  {object}  file_info.HttpResponseErr
 // @Router       /files/{name} [get]
 func (h *handler) GetFileInfo(c *gin.Context) {

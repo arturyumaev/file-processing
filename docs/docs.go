@@ -53,6 +53,12 @@ const docTemplate = `{
                             "$ref": "#/definitions/file_info.HttpResponseErr"
                         }
                     },
+                    "408": {
+                        "description": "Request Timeout",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {

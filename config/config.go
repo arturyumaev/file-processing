@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Mode   string `json:"mode"`
-	Server struct {
+	Mode                      string `yaml:"mode"`
+	ApplicationHandlerTimeout uint   `yaml:"application_handler_timeout"`
+	Server                    struct {
 		Port int `yaml:"port"`
 	} `yaml:"server"`
 }

@@ -40,10 +40,13 @@ func New(config *config.Config) *app {
 		gin.SetMode(gin.DebugMode)
 	}
 
+	log.Info().Msgf("default handler timeout is: %ds", config.ApplicationHandlerTimeout)
+
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestId())
 	r.Use(middleware.Logger())
+	r.Use(middleware.RequestTimeout(time.Duration(config.ApplicationHandlerTimeout) * time.Second))
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
