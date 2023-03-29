@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/arturyumaev/file-processing/api/internal/file_info"
+	"github.com/arturyumaev/file-processing/internal/file_info"
 	"github.com/gin-gonic/gin"
 )
 

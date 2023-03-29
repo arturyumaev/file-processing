@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"github.com/arturyumaev/file-processing/api/pkg/logger"
+	"github.com/arturyumaev/file-processing/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 )

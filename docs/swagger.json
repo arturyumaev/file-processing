@@ -1,0 +1,103 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "API for file processing",
+        "title": "File processing API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8888",
+    "basePath": "/",
+    "paths": {
+        "/files/{name}": {
+            "get": {
+                "description": "get file info by its name",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Get meta information about a file",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "File name",
+                        "name": "name",
+                        "in": "path"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.FileInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "file_info.HttpResponseErr": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.FileInfo": {
+            "type": "object",
+            "properties": {
+                "filename_hash": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "status": {
+                    "$ref": "#/definitions/models.FileInfoStatus"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
+        "models.FileInfoStatus": {
+            "type": "string",
+            "enum": [
+                "recieved",
+                "in_queue",
+                "processing",
+                "done",
+                "error"
+            ],
+            "x-enum-varnames": [
+                "FileInfoStatusRecieved",
+                "FileInfoStatusInQueue",
+                "FileInfoStatusProcessing",
+                "FileInfoStatusDone",
+                "FileInfoStatusError"
+            ]
+        }
+    }
+}

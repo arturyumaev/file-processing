@@ -8,23 +8,27 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/arturyumaev/file-processing/api/config"
-	fileInfoHandler "github.com/arturyumaev/file-processing/api/internal/file_info/handler"
-	fileInfoRepository "github.com/arturyumaev/file-processing/api/internal/file_info/repository"
-	fileInfoService "github.com/arturyumaev/file-processing/api/internal/file_info/service"
-	"github.com/arturyumaev/file-processing/api/internal/middleware"
-	"github.com/arturyumaev/file-processing/api/pkg/client/postgres"
-	"github.com/arturyumaev/file-processing/api/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
 	"github.com/rs/zerolog"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
+
+	"github.com/arturyumaev/file-processing/config"
+	_ "github.com/arturyumaev/file-processing/docs"
+	fileInfoHandler "github.com/arturyumaev/file-processing/internal/file_info/handler"
+	fileInfoRepository "github.com/arturyumaev/file-processing/internal/file_info/repository"
+	fileInfoService "github.com/arturyumaev/file-processing/internal/file_info/service"
+	"github.com/arturyumaev/file-processing/internal/middleware"
+	"github.com/arturyumaev/file-processing/pkg/client/postgres"
+	"github.com/arturyumaev/file-processing/pkg/logger"
 )
 
 type app struct {
 	server *http.Server
 	config *config.Config
 	log    *zerolog.Logger
-	conn   *pgx.Conn // TODO: can be updated to interface
+	conn   *pgx.Conn
 }
 
 func New(config *config.Config) *app {
@@ -40,6 +44,7 @@ func New(config *config.Config) *app {
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestId())
 	r.Use(middleware.Logger())
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
 	conn, err := postgres.NewClient(ctx)

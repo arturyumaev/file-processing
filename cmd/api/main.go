@@ -3,9 +3,9 @@ package main
 import (
 	"flag"
 
-	"github.com/arturyumaev/file-processing/api/config"
-	"github.com/arturyumaev/file-processing/api/internal/pkg/app"
-	"github.com/arturyumaev/file-processing/api/pkg/logger"
+	"github.com/arturyumaev/file-processing/config"
+	"github.com/arturyumaev/file-processing/internal/pkg/app"
+	"github.com/arturyumaev/file-processing/pkg/logger"
 )
 
 type Flags struct {
@@ -24,6 +24,12 @@ func parseFlags() *Flags {
 	return flags
 }
 
+// @title File processing API
+// @version 1.0
+// @description API for file processing
+
+// @host localhost:8888
+// @BasePath /
 func main() {
 	logger := logger.Get().Error()
 	flags := parseFlags()

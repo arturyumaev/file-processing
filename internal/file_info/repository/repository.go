@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 
-	"github.com/arturyumaev/file-processing/api/internal/file_info"
-	"github.com/arturyumaev/file-processing/api/internal/file_info/queries"
-	"github.com/arturyumaev/file-processing/api/models"
+	"github.com/arturyumaev/file-processing/internal/file_info"
+	"github.com/arturyumaev/file-processing/internal/file_info/queries"
+	"github.com/arturyumaev/file-processing/models"
 	"github.com/jackc/pgx/v5"
 )
 

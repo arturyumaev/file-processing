@@ -3,7 +3,7 @@ package file_info
 import (
 	"context"
 
-	"github.com/arturyumaev/file-processing/api/models"
+	"github.com/arturyumaev/file-processing/models"
 )
 
 type Service interface {

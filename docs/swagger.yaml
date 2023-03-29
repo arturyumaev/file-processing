@@ -1,0 +1,70 @@
+basePath: /
+definitions:
+  file_info.HttpResponseErr:
+    properties:
+      error:
+        type: string
+    type: object
+  models.FileInfo:
+    properties:
+      filename_hash:
+        type: string
+      id:
+        type: string
+      status:
+        $ref: '#/definitions/models.FileInfoStatus'
+      timestamp:
+        type: string
+    type: object
+  models.FileInfoStatus:
+    enum:
+    - recieved
+    - in_queue
+    - processing
+    - done
+    - error
+    type: string
+    x-enum-varnames:
+    - FileInfoStatusRecieved
+    - FileInfoStatusInQueue
+    - FileInfoStatusProcessing
+    - FileInfoStatusDone
+    - FileInfoStatusError
+host: localhost:8888
+info:
+  contact: {}
+  description: API for file processing
+  title: File processing API
+  version: "1.0"
+paths:
+  /files/{name}:
+    get:
+      description: get file info by its name
+      parameters:
+      - description: File name
+        in: path
+        name: name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.FileInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/file_info.HttpResponseErr'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/file_info.HttpResponseErr'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/file_info.HttpResponseErr'
+      summary: Get meta information about a file
+      tags:
+      - files
+swagger: "2.0"
