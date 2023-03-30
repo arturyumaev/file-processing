@@ -19,7 +19,7 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 	fileInfo := &models.FileInfo{}
 
 	if name == "file3" {
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Second)
 	}
 
 	err := r.conn.
@@ -37,11 +37,6 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 	}
 
 	return fileInfo, nil
-}
-
-func (r *repository) FindAll(ctx context.Context) ([]*models.FileInfo, error) {
-	all := []*models.FileInfo{}
-	return all, nil
 }
 
 func New(conn *pgx.Conn) file_info.Repository {
