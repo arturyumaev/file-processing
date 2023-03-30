@@ -36,10 +36,8 @@ func TestHandler_getFileInfo(t *testing.T) {
 		}
 		fileInfoServiceMock.EXPECT().GetFileInfo(ctx, "file1").Return(fileInfo, nil)
 
-		handler := New(fileInfoServiceMock)
-
 		router := getRouter()
-		router.GET("/files/:name", handler.GetFileInfo)
+		RegisterHandlers(router, fileInfoServiceMock)
 		response := httptest.NewRecorder()
 		req, _ := http.NewRequest(http.MethodGet, "/files/file1", nil)
 
