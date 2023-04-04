@@ -6,16 +6,16 @@ import (
 	"os"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 var (
-	host = os.Getenv("POSTGRES_HOST")
-	db   = os.Getenv("POSTGRES_DB_NAME")
-	port = os.Getenv("POSTGRES_PORT")
-	user = os.Getenv("POSTGRES_USERNAME")
-	pwd  = os.Getenv("POSTGRES_PASSWORD")
+	host   = os.Getenv("POSTGRES_HOST")
+	dbname = os.Getenv("POSTGRES_DB_NAME")
+	port   = os.Getenv("POSTGRES_PORT")
+	user   = os.Getenv("POSTGRES_USERNAME")
+	pwd    = os.Getenv("POSTGRES_PASSWORD")
 )
 
 const (
@@ -23,18 +23,18 @@ const (
 	CONN_DELAY        = 3 * time.Second
 )
 
-func NewClient(ctx context.Context) (conn *pgx.Conn, err error) {
+func NewClient(ctx context.Context) (db *sqlx.DB, err error) {
 	connString := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=disable",
 		user,
 		pwd,
 		host,
 		port,
-		db,
+		dbname,
 	)
 
 	err = connectWithTries(func() error {
-		conn, err = pgx.Connect(ctx, connString)
+		db, err = sqlx.ConnectContext(ctx, "postgres", connString)
 		if err != nil {
 			return err
 		}

@@ -15,8 +15,8 @@ const (
 )
 
 type FileInfo struct {
-	Id           uuid.UUID      `json:"id"`
-	FilenameHash string         `json:"filename_hash"`
-	Status       FileInfoStatus `json:"status"`
-	TimeStamp    string         `json:"timestamp"`
+	Id           uuid.UUID      `json:"id" db:"id"`
+	FilenameHash string         `json:"filename_hash" db:"filename_hash"`
+	Status       FileInfoStatus `json:"status" db:"status"`
+	TimeStamp    string         `json:"timestamp" db:"timestamp"`
 }

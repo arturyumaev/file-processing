@@ -2,9 +2,10 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
 	"github.com/arturyumaev/file-processing/internal/file_info/queries"
@@ -12,7 +13,7 @@ import (
 )
 
 type repository struct {
-	conn *pgx.Conn
+	db *sqlx.DB
 }
 
 func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo, error) {
@@ -22,15 +23,8 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 		time.Sleep(5 * time.Second)
 	}
 
-	err := r.conn.
-		QueryRow(ctx, queries.SelectFileInfo, name).
-		Scan(
-			&fileInfo.Id,
-			&fileInfo.Status,
-			&fileInfo.TimeStamp,
-			&fileInfo.FilenameHash,
-		)
-	if err == pgx.ErrNoRows {
+	err := r.db.GetContext(ctx, fileInfo, queries.SelectFileInfo, name)
+	if err == sql.ErrNoRows {
 		return nil, file_info.ErrNoSuchFile
 	} else if err != nil {
 		return nil, err
@@ -39,6 +33,6 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 	return fileInfo, nil
 }
 
-func New(conn *pgx.Conn) file_info.Repository {
-	return &repository{conn}
+func New(db *sqlx.DB) file_info.Repository {
+	return &repository{db}
 }

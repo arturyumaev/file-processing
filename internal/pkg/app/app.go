@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -28,7 +28,7 @@ type app struct {
 	server *http.Server
 	config *config.Config
 	log    *zerolog.Logger
-	conn   *pgx.Conn
+	db     *sqlx.DB
 }
 
 func New(config *config.Config) *app {
@@ -50,14 +50,14 @@ func New(config *config.Config) *app {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
-	conn, err := postgres.NewClient(ctx)
+	db, err := postgres.NewClient(ctx)
 	if err != nil {
 		panic(err)
 	} else {
 		log.Info().Msg("connected to postgres")
 	}
 
-	repository := fileInfoRepository.New(conn)
+	repository := fileInfoRepository.New(db)
 	service := fileInfoService.New(repository)
 	fileInfoHandler.RegisterHandlers(r, service)
 
@@ -73,14 +73,14 @@ func New(config *config.Config) *app {
 		server,
 		config,
 		log,
-		conn,
+		db,
 	}
 
 	return app
 }
 
 func (a *app) Run() error {
-	defer a.conn.Close(context.Background())
+	defer a.db.Close()
 
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
