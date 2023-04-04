@@ -23,7 +23,7 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 		time.Sleep(5 * time.Second)
 	}
 
-	err := r.db.GetContext(ctx, fileInfo, queries.SelectFileInfo, name)
+	err := r.db.GetContext(ctx, fileInfo, r.db.Rebind(queries.SelectFileInfo), name)
 	if err == sql.ErrNoRows {
 		return nil, file_info.ErrNoSuchFile
 	} else if err != nil {
