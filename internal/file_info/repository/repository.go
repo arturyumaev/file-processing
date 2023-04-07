@@ -9,15 +9,15 @@ import (
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
 	"github.com/arturyumaev/file-processing/internal/file_info/queries"
-	"github.com/arturyumaev/file-processing/models"
+	"github.com/arturyumaev/file-processing/internal/file_info/service"
 )
 
 type repository struct {
 	db *sqlx.DB
 }
 
-func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo, error) {
-	fileInfo := &models.FileInfo{}
+func (r *repository) FindOne(ctx context.Context, name string) (*file_info.FileInfo, error) {
+	fileInfo := &file_info.FileInfo{}
 
 	if name == "file3" {
 		time.Sleep(5 * time.Second)
@@ -33,6 +33,6 @@ func (r *repository) FindOne(ctx context.Context, name string) (*models.FileInfo
 	return fileInfo, nil
 }
 
-func New(db *sqlx.DB) file_info.Repository {
+func New(db *sqlx.DB) service.Repository {
 	return &repository{db}
 }

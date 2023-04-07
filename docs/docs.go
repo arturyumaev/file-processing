@@ -38,7 +38,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/models.FileInfo"
+                            "$ref": "#/definitions/file_info.FileInfo"
                         }
                     },
                     "400": {
@@ -70,15 +70,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "file_info.HttpResponseErr": {
-            "type": "object",
-            "properties": {
-                "error": {
-                    "type": "string"
-                }
-            }
-        },
-        "models.FileInfo": {
+        "file_info.FileInfo": {
             "type": "object",
             "properties": {
                 "filename_hash": {
@@ -88,14 +80,14 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "status": {
-                    "$ref": "#/definitions/models.FileInfoStatus"
+                    "$ref": "#/definitions/file_info.FileInfoStatus"
                 },
                 "timestamp": {
                     "type": "string"
                 }
             }
         },
-        "models.FileInfoStatus": {
+        "file_info.FileInfoStatus": {
             "type": "string",
             "enum": [
                 "recieved",
@@ -105,12 +97,20 @@ const docTemplate = `{
                 "error"
             ],
             "x-enum-varnames": [
-                "FileInfoStatusRecieved",
-                "FileInfoStatusInQueue",
-                "FileInfoStatusProcessing",
-                "FileInfoStatusDone",
-                "FileInfoStatusError"
+                "StatusRecieved",
+                "StatusInQueue",
+                "StatusProcessing",
+                "StatusDone",
+                "StatusError"
             ]
+        },
+        "file_info.HttpResponseErr": {
+            "type": "object",
+            "properties": {
+                "error": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`

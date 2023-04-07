@@ -13,7 +13,6 @@ import (
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
 	mock_file_info "github.com/arturyumaev/file-processing/internal/file_info/mocks"
-	"github.com/arturyumaev/file-processing/models"
 )
 
 func getRouter() *gin.Engine {
@@ -30,7 +29,7 @@ func TestHandler_getFileInfo(t *testing.T) {
 		defer ctrl.Finish()
 		fileInfoServiceMock := mock_file_info.NewMockService(ctrl)
 
-		fileInfo := &models.FileInfo{
+		fileInfo := &file_info.FileInfo{
 			FilenameHash: "826e8142e6baabe8af779f5f490cf5f5",
 			Status:       "done",
 		}

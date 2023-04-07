@@ -1,22 +1,17 @@
 basePath: /
 definitions:
-  file_info.HttpResponseErr:
-    properties:
-      error:
-        type: string
-    type: object
-  models.FileInfo:
+  file_info.FileInfo:
     properties:
       filename_hash:
         type: string
       id:
         type: string
       status:
-        $ref: '#/definitions/models.FileInfoStatus'
+        $ref: '#/definitions/file_info.FileInfoStatus'
       timestamp:
         type: string
     type: object
-  models.FileInfoStatus:
+  file_info.FileInfoStatus:
     enum:
     - recieved
     - in_queue
@@ -25,11 +20,16 @@ definitions:
     - error
     type: string
     x-enum-varnames:
-    - FileInfoStatusRecieved
-    - FileInfoStatusInQueue
-    - FileInfoStatusProcessing
-    - FileInfoStatusDone
-    - FileInfoStatusError
+    - StatusRecieved
+    - StatusInQueue
+    - StatusProcessing
+    - StatusDone
+    - StatusError
+  file_info.HttpResponseErr:
+    properties:
+      error:
+        type: string
+    type: object
 host: localhost:8888
 info:
   contact: {}
@@ -51,7 +51,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/models.FileInfo'
+            $ref: '#/definitions/file_info.FileInfo'
         "400":
           description: Bad Request
           schema:

@@ -12,7 +12,7 @@ import (
 // @Tags         files
 // @Produce      json
 // @Param        name path string false "File name"
-// @Success      200  {object}  models.FileInfo
+// @Success      200  {object}  file_info.FileInfo
 // @Failure      400  {object}  file_info.HttpResponseErr
 // @Failure      404  {object}  file_info.HttpResponseErr
 // @Failure      408  {object}  file_info.HttpResponseErr

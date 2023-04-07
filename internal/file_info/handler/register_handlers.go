@@ -1,11 +1,8 @@
 package handler
 
-import (
-	"github.com/arturyumaev/file-processing/internal/file_info"
-	"github.com/gin-gonic/gin"
-)
+import "github.com/gin-gonic/gin"
 
-func RegisterHandlers(router *gin.Engine, service file_info.Service) {
+func RegisterHandlers(router *gin.Engine, service Service) {
 	h := New(service)
 
 	userEndpoints := router.Group("/files")

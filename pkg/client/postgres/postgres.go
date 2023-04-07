@@ -33,7 +33,7 @@ func NewClient(ctx context.Context) (db *sqlx.DB, err error) {
 		dbname,
 	)
 
-	err = connectWithTries(func() error {
+	err = connectWithTries(func() error { // убрать
 		db, err = sqlx.ConnectContext(ctx, "postgres", connString)
 		if err != nil {
 			return err

@@ -4,17 +4,21 @@ import (
 	"context"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
-	"github.com/arturyumaev/file-processing/models"
+	"github.com/arturyumaev/file-processing/internal/file_info/handler"
 )
 
-type service struct {
-	r file_info.Repository
+type Repository interface {
+	FindOne(ctx context.Context, name string) (*file_info.FileInfo, error)
 }
 
-func (svc *service) GetFileInfo(ctx context.Context, name string) (*models.FileInfo, error) {
+type service struct {
+	r Repository
+}
+
+func (svc *service) GetFileInfo(ctx context.Context, name string) (*file_info.FileInfo, error) {
 	return svc.r.FindOne(ctx, name)
 }
 
-func New(r file_info.Repository) file_info.Service {
+func New(r Repository) handler.Service {
 	return &service{r}
 }
