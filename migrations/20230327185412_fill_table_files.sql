@@ -1,30 +1,19 @@
 -- +goose Up
 -- +goose StatementBegin
-create procedure gen_data(s file_status, h text)
-language plpgsql as $$
-begin
-  insert into files (status, filename_hash)
-    values
-      (s, encode(digest(h, 'md5'), 'hex'));
-
-  perform pg_sleep(2);
-end $$;
-
-call gen_data('recieved',   'file1');
-call gen_data('in_queue',   'file1');
-call gen_data('processing', 'file1');
-call gen_data('processing', 'file1');
-call gen_data('done',       'file1');
-
-call gen_data('recieved', 'file2');
-call gen_data('error',    'file2');
-
-call gen_data('recieved', 'file3');
-call gen_data('in_queue', 'file3');
+insert into files (status, timestamp, filename)
+  values
+    ('recieved',   '2023-04-08 21:00:00.000000+03', 'file1'),
+    ('in_queue',   '2023-04-08 21:05:00.000000+03', 'file1'),
+    ('processing', '2023-04-08 21:10:00.000000+03', 'file1'),
+    ('processing', '2023-04-08 21:15:00.000000+03', 'file1'),
+    ('done',       '2023-04-08 21:20:00.000000+03', 'file1'),
+    ('recieved',   '2023-04-08 21:25:00.000000+03', 'file2'),
+    ('error',      '2023-04-08 21:30:00.000000+03', 'file2'),
+    ('recieved',   '2023-04-08 21:35:00.000000+03', 'file3'),
+    ('in_queue',   '2023-04-08 21:40:00.000000+03', 'file3');
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 delete from files;
-drop procedure gen_data;
 -- +goose StatementEnd

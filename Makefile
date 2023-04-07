@@ -19,6 +19,9 @@ migrate:
 rollback:
 	goose -v -dir migrations reset
 
+migrate_status:
+	goose status
+
 clean:
 	go clean
 

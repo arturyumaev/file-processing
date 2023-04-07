@@ -1,7 +1,5 @@
 package file_info
 
-import "github.com/google/uuid"
-
 type FileInfoStatus string
 
 const (
@@ -13,8 +11,8 @@ const (
 )
 
 type FileInfo struct {
-	Id           uuid.UUID      `json:"id" db:"id"`
-	FilenameHash string         `json:"filename_hash" db:"filename_hash"`
-	Status       FileInfoStatus `json:"status" db:"status"`
-	TimeStamp    string         `json:"timestamp" db:"timestamp"`
+	Id        int64          `json:"id" db:"id"`
+	Filename  string         `json:"filename_hash" db:"filename"`
+	Status    FileInfoStatus `json:"status" db:"status"`
+	TimeStamp string         `json:"timestamp" db:"timestamp"`
 }
