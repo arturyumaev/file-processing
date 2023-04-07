@@ -12,7 +12,7 @@ const (
 
 type FileInfo struct {
 	Id        int64          `json:"id" db:"id"`
-	Filename  string         `json:"filename_hash" db:"filename"`
+	Filename  string         `json:"filename" db:"filename"`
 	Status    FileInfoStatus `json:"status" db:"status"`
 	TimeStamp string         `json:"timestamp" db:"timestamp"`
 }

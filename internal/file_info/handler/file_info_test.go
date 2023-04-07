@@ -30,8 +30,8 @@ func TestHandler_getFileInfo(t *testing.T) {
 		fileInfoServiceMock := mock_file_info.NewMockService(ctrl)
 
 		fileInfo := &file_info.FileInfo{
-			FilenameHash: "826e8142e6baabe8af779f5f490cf5f5",
-			Status:       "done",
+			Filename: "file1",
+			Status:   "done",
 		}
 		fileInfoServiceMock.EXPECT().GetFileInfo(ctx, "file1").Return(fileInfo, nil)
 
@@ -44,7 +44,7 @@ func TestHandler_getFileInfo(t *testing.T) {
 		assert.Equal(t, http.StatusOK, response.Code)
 		assert.JSONEq(
 			t,
-			`{"id":"00000000-0000-0000-0000-000000000000","filename_hash":"826e8142e6baabe8af779f5f490cf5f5","status":"done","timestamp":""}`,
+			`{"id":0,"filename":"file1","status":"done","timestamp":""}`,
 			response.Body.String(),
 		)
 	})
