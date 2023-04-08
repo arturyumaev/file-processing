@@ -8,10 +8,10 @@ build:
 	go build -o ./bin/api ./cmd/api/main.go
 
 run:
-	./bin/api -config ./config/config.yaml
+	./bin/api
 
 run_local:
-	CompileDaemon -build="go build -o ./bin/api ./cmd/api/main.go" -command="./bin/api -config ./config/config.yaml" -exclude-dir=".git" -color -log-prefix=false
+	CompileDaemon -build="go build -o ./bin/api ./cmd/api/main.go" -command="./bin/api" -exclude-dir=".git" -color -log-prefix=false
 
 migrate:
 	goose -v -dir migrations up

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -14,7 +15,6 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 
-	"github.com/arturyumaev/file-processing/config"
 	_ "github.com/arturyumaev/file-processing/docs"
 	fileInfoHandler "github.com/arturyumaev/file-processing/internal/file_info/handler"
 	fileInfoRepository "github.com/arturyumaev/file-processing/internal/file_info/repository"
@@ -26,27 +26,27 @@ import (
 
 type app struct {
 	server *http.Server
-	config *config.Config
 	log    *zerolog.Logger
 	db     *sqlx.DB
 }
 
-func New(config *config.Config) *app {
-	log := logger.Get()
-
-	if config.IsProduction() {
+func New() *app {
+	if os.Getenv("APPLICATION_MODE") == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	log.Info().Msgf("default handler timeout is: %ds", config.ApplicationHandlerTimeout)
+	log := logger.Get()
+
+	handlerTimeout, _ := strconv.Atoi(os.Getenv("APPLICATION_HANDLER_TIMEOUT"))
+	log.Info().Msgf("default handler timeout is: %ds", handlerTimeout)
 
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestId())
 	r.Use(middleware.Logger())
-	r.Use(middleware.RequestTimeout(time.Duration(config.ApplicationHandlerTimeout) * time.Second))
+	r.Use(middleware.RequestTimeout(time.Duration(handlerTimeout) * time.Second))
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
@@ -62,7 +62,7 @@ func New(config *config.Config) *app {
 	fileInfoHandler.RegisterHandlers(r, service)
 
 	server := &http.Server{
-		Addr:           fmt.Sprintf(":%d", config.Server.Port),
+		Addr:           fmt.Sprintf(":%s", os.Getenv("APPLICATION_PORT")),
 		Handler:        r,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
@@ -71,7 +71,6 @@ func New(config *config.Config) *app {
 
 	app := &app{
 		server,
-		config,
 		log,
 		db,
 	}
@@ -87,7 +86,7 @@ func (a *app) Run() error {
 			a.log.Error().Msgf("failed to listen and serve: %+v", err)
 		}
 	}()
-	a.log.Info().Msgf("server started at :%d", a.config.Server.Port)
+	a.log.Info().Msgf("server started at :%s", os.Getenv("APPLICATION_PORT"))
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Interrupt)

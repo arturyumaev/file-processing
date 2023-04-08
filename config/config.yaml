@@ -1,4 +1,0 @@
-mode: production # development
-server:
-  port: 8888
-application_handler_timeout: 3
