@@ -1,9 +1,8 @@
 package handler
 
 import (
+	"errors"
 	"net/http"
-
-	"github.com/gin-gonic/gin"
 )
 
 // GetFileInfo godoc
@@ -18,16 +17,23 @@ import (
 // @Failure      408  {object}  file_info.HttpResponseErr
 // @Failure      500  {object}  file_info.HttpResponseErr
 // @Router       /files/{name} [get]
-func (h *handler) GetFileInfo(c *gin.Context) {
-	filename := c.Param("name")
-
-	file, err := h.svc.GetFileInfo(c.Request.Context(), filename)
-	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
-			"error": err.Error(),
-		})
+func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		h.WriteError(w, http.StatusMethodNotAllowed, errors.New("method not allowed"))
 		return
 	}
 
-	c.JSON(http.StatusOK, file)
+	filename := r.URL.Query().Get("name")
+	if filename == "" {
+		h.WriteError(w, http.StatusBadRequest, errors.New("empty parameter: name"))
+		return
+	}
+
+	file, err := h.svc.GetFileInfo(r.Context(), filename)
+	if err != nil {
+		h.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	h.WriteSuccess(w, file)
 }

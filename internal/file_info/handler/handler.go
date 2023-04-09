@@ -2,9 +2,9 @@ package handler
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
-	"github.com/gin-gonic/gin"
 )
 
 //go:generate mockgen -source=handler.go -destination=../mocks/service.go
@@ -13,7 +13,7 @@ type Service interface {
 }
 
 type Handler interface {
-	GetFileInfo(c *gin.Context)
+	GetFileInfo(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {

@@ -7,7 +7,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 
@@ -15,11 +14,9 @@ import (
 	mock_file_info "github.com/arturyumaev/file-processing/internal/file_info/mocks"
 )
 
-func getRouter() *gin.Engine {
-	gin.SetMode(gin.TestMode)
-	router := gin.Default()
-	router.UseRawPath = true
-	return router
+func getRouter() *http.ServeMux {
+	mux := http.NewServeMux()
+	return mux
 }
 
 func TestHandler_getFileInfo(t *testing.T) {

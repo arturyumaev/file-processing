@@ -57,13 +57,15 @@ func New() *app {
 		log.Info().Msg("connected to postgres")
 	}
 
+	mux := http.NewServeMux()
+
 	repository := fileInfoRepository.New(db)
 	service := fileInfoService.New(repository)
-	fileInfoHandler.RegisterHandlers(r, service)
+	fileInfoHandler.RegisterHandlers(mux, service)
 
 	server := &http.Server{
 		Addr:           fmt.Sprintf(":%s", os.Getenv("APPLICATION_PORT")),
-		Handler:        r,
+		Handler:        mux,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
@@ -84,9 +86,10 @@ func (a *app) Run() error {
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
 			a.log.Error().Msgf("failed to listen and serve: %+v", err)
+		} else {
+			a.log.Info().Msgf("server started at :%s", os.Getenv("APPLICATION_PORT"))
 		}
 	}()
-	a.log.Info().Msgf("server started at :%s", os.Getenv("APPLICATION_PORT"))
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, os.Interrupt)
