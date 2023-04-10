@@ -1,9 +1,24 @@
 package handler
 
 import (
-	"errors"
+	"context"
 	"net/http"
+
+	"github.com/arturyumaev/file-processing/internal/file_info"
 )
+
+//go:generate mockgen -source=handler.go -destination=../mocks/service.go
+type Service interface {
+	GetFileInfo(ctx context.Context, name string) (*file_info.FileInfo, error)
+}
+
+type Handler interface {
+	GetFileInfo(w http.ResponseWriter, r *http.Request)
+}
+
+type handler struct {
+	svc Service
+}
 
 // GetFileInfo godoc
 // @Summary      Get meta information about a file
@@ -19,13 +34,13 @@ import (
 // @Router       /files/{name} [get]
 func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-		h.WriteError(w, http.StatusMethodNotAllowed, errors.New("method not allowed"))
+		h.WriteError(w, http.StatusMethodNotAllowed, file_info.ErrMethodNotAllowed)
 		return
 	}
 
 	filename := r.URL.Query().Get("name")
 	if filename == "" {
-		h.WriteError(w, http.StatusBadRequest, errors.New("empty parameter: name"))
+		h.WriteError(w, http.StatusBadRequest, file_info.ErrEmptyParameterName)
 		return
 	}
 
@@ -36,4 +51,8 @@ func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.WriteSuccess(w, file)
+}
+
+func New(svc Service) Handler {
+	return &handler{svc}
 }

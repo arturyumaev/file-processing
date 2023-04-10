@@ -1,58 +1,76 @@
 package middleware
 
 import (
+	"net/http"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog"
 
 	"github.com/arturyumaev/file-processing/pkg/logger"
 )
 
-func Logger() gin.HandlerFunc {
+type responseWriter struct {
+	http.ResponseWriter
+	statusCode  int
+	wroteHeader bool
+	body        []byte
+}
+
+func wrapResponseWriter(w http.ResponseWriter) *responseWriter {
+	return &responseWriter{ResponseWriter: w}
+}
+
+func (rw *responseWriter) Write(bytes []byte) (int, error) {
+	rw.body = bytes
+	return rw.ResponseWriter.Write(bytes)
+}
+
+func (rw *responseWriter) WriteHeader(code int) {
+	if rw.wroteHeader {
+		return
+	}
+
+	rw.statusCode = code
+	rw.ResponseWriter.WriteHeader(code)
+	rw.wroteHeader = true
+
+	return
+}
+
+func Logger(next http.Handler) http.Handler {
 	logger := logger.Get()
 
-	return func(c *gin.Context) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		timeStart := time.Now()
-		path := c.Request.URL.Path
-		rawQuery := c.Request.URL.RawQuery
+		path := r.URL.Path
+		rawQuery := r.URL.RawQuery
 		if rawQuery != "" {
 			path = path + "?" + rawQuery
 		}
 
-		c.Next()
+		wrappedRW := wrapResponseWriter(w)
+		next.ServeHTTP(wrappedRW, r)
 
-		var rawRequestId interface{}
-		var requestId string
-		rawRequestId, exists := c.Get(ContextKeyRequestID)
-		if !exists {
-			requestId = ""
-		}
-		requestId = rawRequestId.(string)
-
+		requestId := r.Context().Value(ContextKeyRequestID).(string)
 		timeAfter := time.Now()
 		latency := timeAfter.Sub(timeStart)
-		clientIP := c.ClientIP()
-		method := c.Request.Method
-		statusCode := c.Writer.Status()
-		errorMessage := c.Errors.ByType(gin.ErrorTypePrivate).String()
-		bodySize := c.Writer.Size()
+		statusCode := wrappedRW.statusCode
+
+		body := string(wrappedRW.body)
 
 		var logEvent *zerolog.Event
-		if c.Writer.Status() >= 500 {
+		if statusCode >= 500 {
 			logEvent = logger.Error()
 		} else {
 			logEvent = logger.Info()
 		}
 
 		logEvent.
-			Str("client_id", clientIP).
-			Str("method", method).
+			Str("method", r.Method).
 			Int("status_code", statusCode).
-			Int("body_size", bodySize).
 			Str("path", path).
 			Str("latency", latency.String()).
 			Str("request_id", requestId).
-			Msg(errorMessage)
-	}
+			Msg(body)
+	})
 }

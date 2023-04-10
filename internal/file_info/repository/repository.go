@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 
@@ -18,10 +17,6 @@ type repository struct {
 
 func (r *repository) FindOne(ctx context.Context, name string) (*file_info.FileInfo, error) {
 	fileInfo := &file_info.FileInfo{}
-
-	if name == "file3" {
-		time.Sleep(5 * time.Second)
-	}
 
 	err := r.db.GetContext(ctx, fileInfo, r.db.Rebind(queries.SelectFileInfo), name)
 	if err == sql.ErrNoRows {

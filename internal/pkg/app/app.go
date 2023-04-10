@@ -43,10 +43,6 @@ func New() *app {
 	log.Info().Msgf("default handler timeout is: %ds", handlerTimeout)
 
 	r := gin.New()
-	r.Use(gin.Recovery())
-	r.Use(middleware.RequestId())
-	r.Use(middleware.Logger())
-	r.Use(middleware.RequestTimeout(time.Duration(handlerTimeout) * time.Second))
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
@@ -58,6 +54,10 @@ func New() *app {
 	}
 
 	mux := http.NewServeMux()
+	var rootHandler http.Handler
+	rootHandler = middleware.Logger(mux)
+	rootHandler = middleware.RequestId(rootHandler)
+	rootHandler = middleware.PanicRecovery(rootHandler)
 
 	repository := fileInfoRepository.New(db)
 	service := fileInfoService.New(repository)
@@ -65,7 +65,7 @@ func New() *app {
 
 	server := &http.Server{
 		Addr:           fmt.Sprintf(":%s", os.Getenv("APPLICATION_PORT")),
-		Handler:        mux,
+		Handler:        rootHandler,
 		ReadTimeout:    10 * time.Second,
 		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
