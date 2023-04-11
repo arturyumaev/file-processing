@@ -2,7 +2,7 @@
 -include .env
 export
 
-all: clean rollback migrate build run
+all: build run
 
 build:
 	go build -o ./bin/api ./cmd/api/main.go
@@ -21,9 +21,6 @@ rollback:
 
 migrate_status:
 	goose status
-
-clean:
-	go clean
 
 swagger:
 	rm -rf docs

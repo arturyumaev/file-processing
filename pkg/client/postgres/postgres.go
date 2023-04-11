@@ -8,6 +8,8 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+
+	"github.com/arturyumaev/file-processing/pkg/logger"
 )
 
 var (
@@ -33,9 +35,13 @@ func NewClient(ctx context.Context) (db *sqlx.DB, err error) {
 		dbname,
 	)
 
+	log := logger.Get()
+
 	err = connectWithTries(func() error { // убрать
+		log.Info().Msgf("trying to establish database connection..., %s", connString)
 		db, err = sqlx.ConnectContext(ctx, "postgres", connString)
 		if err != nil {
+			log.Error().Msgf("error: %s", err.Error())
 			return err
 		}
 

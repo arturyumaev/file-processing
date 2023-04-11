@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -38,9 +37,6 @@ func New() *app {
 	}
 
 	log := logger.Get()
-
-	handlerTimeout, _ := strconv.Atoi(os.Getenv("APPLICATION_HANDLER_TIMEOUT"))
-	log.Info().Msgf("default handler timeout is: %ds", handlerTimeout)
 
 	r := gin.New()
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

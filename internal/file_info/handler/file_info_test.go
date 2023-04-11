@@ -35,7 +35,7 @@ func TestHandler_getFileInfo(t *testing.T) {
 		router := getRouter()
 		RegisterHandlers(router, fileInfoServiceMock)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/files/file1", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/files?name=file1", nil)
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusOK, response.Code)
@@ -58,7 +58,7 @@ func TestHandler_getFileInfo(t *testing.T) {
 		router := getRouter()
 		RegisterHandlers(router, fileInfoServiceMock)
 		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/files/file4", nil)
+		req, _ := http.NewRequest(http.MethodGet, "/files?name=file4", nil)
 
 		router.ServeHTTP(response, req)
 		assert.Equal(t, http.StatusBadRequest, response.Code)
