@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  api:
+    build: ./
+    command: make run
+    ports:
+    - 8888:8080
+    depends_on:
+      - postgres
+
+  postgres:
+    container_name: postgres
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres

@@ -19,16 +19,9 @@ migrate:
 rollback:
 	goose -v -dir migrations reset
 
-migrate_status:
-	goose status
-
 swagger:
 	rm -rf docs
 	swag init -g cmd/api/main.go
 
-createdb:
-	docker pull postgres
-	docker run -p 9999:5432 --name postgres -e POSTGRES_PASSWORD=postgres -d postgres
-
 test:
-	go test -v -coverprofile cover.out ./...
+	go test ./...
