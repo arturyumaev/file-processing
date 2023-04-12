@@ -8,7 +8,6 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
-RUN mv .env.example .env
 
 RUN CGO_ENABLED=0 GOOS=linux make build
 
