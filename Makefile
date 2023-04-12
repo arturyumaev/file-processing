@@ -1,6 +1,4 @@
 #!make
--include .env
-export
 
 all: build run
 

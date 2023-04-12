@@ -11,9 +11,9 @@ import (
 
 var (
 	host   = os.Getenv("POSTGRES_HOST")
-	dbname = os.Getenv("POSTGRES_DB_NAME")
+	dbname = os.Getenv("POSTGRES_DB")
 	port   = os.Getenv("POSTGRES_PORT")
-	user   = os.Getenv("POSTGRES_USERNAME")
+	user   = os.Getenv("POSTGRES_USER")
 	pwd    = os.Getenv("POSTGRES_PASSWORD")
 )
 
