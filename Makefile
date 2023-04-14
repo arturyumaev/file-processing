@@ -1,5 +1,3 @@
-#!make
-
 all: build run
 
 build:
