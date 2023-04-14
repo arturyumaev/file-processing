@@ -79,11 +79,10 @@ func New() *app {
 func (a *app) Run() error {
 	defer a.db.Close()
 
+	a.log.Info().Msgf("starting server at :%s", os.Getenv("APPLICATION_PORT"))
 	go func() {
 		if err := a.server.ListenAndServe(); err != nil {
 			a.log.Error().Msgf("failed to listen and serve: %+v", err)
-		} else {
-			a.log.Info().Msgf("server started at :%s", os.Getenv("APPLICATION_PORT"))
 		}
 	}()
 

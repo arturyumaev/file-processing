@@ -8,8 +8,12 @@ build:
 run:
 	./bin/api
 
-run_local:
+start:
+ifeq (${APPLICATION_MODE},  production)
+	$(MAKE) run
+else
 	CompileDaemon -build="go build -o ./bin/api ./cmd/api/main.go" -command="./bin/api" -exclude-dir=".git" -color -log-prefix=false
+endif
 
 swagger:
 	rm -rf docs
