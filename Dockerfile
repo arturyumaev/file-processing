@@ -12,7 +12,7 @@ COPY . .
 
 RUN CGO_ENABLED=0 GOOS=linux make build
 
-EXPOSE 8080
+EXPOSE ${APPLICATION_PORT}
 
 # Run
 CMD ["make", "start"]

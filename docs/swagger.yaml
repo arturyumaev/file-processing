@@ -2,10 +2,10 @@ basePath: /
 definitions:
   file_info.FileInfo:
     properties:
-      filename_hash:
+      filename:
         type: string
       id:
-        type: string
+        type: integer
       status:
         $ref: '#/definitions/file_info.FileInfoStatus'
       timestamp:
@@ -30,7 +30,6 @@ definitions:
       error:
         type: string
     type: object
-host: localhost:8888
 info:
   contact: {}
   description: API for file processing

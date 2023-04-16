@@ -8,11 +8,9 @@ import (
 	"os/signal"
 	"time"
 
-	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"github.com/rs/zerolog"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	httpSwagger "github.com/swaggo/http-swagger/v2"
 
 	_ "github.com/arturyumaev/file-processing/docs"
 	fileInfoHandler "github.com/arturyumaev/file-processing/internal/file_info/handler"
@@ -30,16 +28,7 @@ type app struct {
 }
 
 func New() *app {
-	if os.Getenv("APPLICATION_MODE") == "production" {
-		gin.SetMode(gin.ReleaseMode)
-	} else {
-		gin.SetMode(gin.DebugMode)
-	}
-
 	log := logger.Get()
-
-	r := gin.New()
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	ctx := context.Background()
 	db, err := postgres.NewClient(ctx)
@@ -50,6 +39,7 @@ func New() *app {
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("/swagger/", httpSwagger.WrapHandler)
 	var rootHandler http.Handler
 	rootHandler = middleware.Logger(mux)
 	rootHandler = middleware.RequestId(rootHandler)

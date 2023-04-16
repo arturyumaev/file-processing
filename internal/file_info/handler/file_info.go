@@ -3,11 +3,16 @@ package handler
 import (
 	"context"
 	"net/http"
+	"regexp"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
 )
 
-//go:generate mockgen -source=handler.go -destination=../mocks/service.go
+var (
+	getFileRegexp = regexp.MustCompile(`^\/files\/(\w+)$`)
+)
+
+//go:generate mockgen -source=file_info.go -destination=../mocks/service.go
 type Service interface {
 	GetFileInfo(ctx context.Context, name string) (*file_info.FileInfo, error)
 }
@@ -38,11 +43,12 @@ func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := r.URL.Query().Get("name")
-	if filename == "" {
+	matches := getFileRegexp.FindStringSubmatch(r.URL.Path)
+	if len(matches) < 2 {
 		h.WriteError(w, http.StatusBadRequest, file_info.ErrEmptyParameterName)
 		return
 	}
+	filename := matches[1]
 
 	file, err := h.svc.GetFileInfo(r.Context(), filename)
 	if err != nil {
