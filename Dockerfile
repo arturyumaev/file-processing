@@ -10,8 +10,6 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux make build
-
 EXPOSE ${APPLICATION_PORT}
 
 # Run
