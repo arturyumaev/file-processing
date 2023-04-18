@@ -1,4 +1,4 @@
-all: build run
+all: docker_compose
 
 build:
 	go build -o ./bin/api ./cmd/api/main.go
@@ -6,13 +6,8 @@ build:
 run:
 	./bin/api
 
-start:
-ifeq (${APPLICATION_MODE},  production)
-	$(MAKE) build
-	$(MAKE) run
-else
+run_local:
 	CompileDaemon -build="go build -o ./bin/api ./cmd/api/main.go" -command="./bin/api" -exclude-dir=".git" -color -log-prefix=false
-endif
 
 swagger:
 	rm -rf docs
