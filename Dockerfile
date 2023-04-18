@@ -1,16 +1,20 @@
-# syntax=docker/dockerfile:1
+FROM golang:alpine AS builder
 
-FROM golang:1.19
+RUN apk update && apk add --no-cache git
 
 WORKDIR /app
 
-RUN go install github.com/githubnemo/CompileDaemon@latest
 COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
 
+RUN go build -o /go/bin/api ./cmd/api/main.go
+
+FROM scratch
+
+COPY --from=builder /go/bin/api /go/bin/api
+
 EXPOSE ${APPLICATION_PORT}
 
-# Run
-CMD ["make", "start"]
+ENTRYPOINT ["/go/bin/api"]
