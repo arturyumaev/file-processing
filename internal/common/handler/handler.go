@@ -6,12 +6,14 @@ import (
 	"net/http"
 )
 
-func (h *handler) WriteError(w http.ResponseWriter, statusCode int, err error) {
+type CommonHandler struct{}
+
+func (h *CommonHandler) WriteError(w http.ResponseWriter, statusCode int, err error) {
 	w.WriteHeader(statusCode)
 	w.Write([]byte(fmt.Sprintf(`{"error":"%s"}`, err.Error())))
 }
 
-func (h *handler) WriteSuccess(w http.ResponseWriter, entity interface{}) {
+func (h *CommonHandler) WriteSuccess(w http.ResponseWriter, entity interface{}) {
 	bytes, err := json.Marshal(entity)
 	if err != nil {
 		h.WriteError(w, http.StatusInternalServerError, err)
@@ -20,4 +22,8 @@ func (h *handler) WriteSuccess(w http.ResponseWriter, entity interface{}) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(bytes)
+}
+
+func New() *CommonHandler {
+	return &CommonHandler{}
 }

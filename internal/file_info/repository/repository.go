@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	"github.com/jmoiron/sqlx"
 
@@ -18,10 +19,11 @@ type repository struct {
 func (r *repository) FindOne(ctx context.Context, name string) (*file_info.FileInfo, error) {
 	fileInfo := &file_info.FileInfo{}
 
-	err := r.db.GetContext(ctx, fileInfo, r.db.Rebind(queries.SelectFileInfo), name)
-	if err == sql.ErrNoRows {
-		return nil, file_info.ErrNoSuchFile
-	} else if err != nil {
+	if err := r.db.GetContext(ctx, fileInfo, r.db.Rebind(queries.SelectFileInfo), name); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, file_info.ErrNoSuchFile
+		}
+
 		return nil, err
 	}
 

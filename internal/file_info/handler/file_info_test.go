@@ -61,7 +61,7 @@ func TestHandler_getFileInfo(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodGet, "/files/file4", nil)
 
 		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusBadRequest, response.Code)
+		assert.Equal(t, http.StatusNotFound, response.Code)
 
 		assert.JSONEq(
 			t,

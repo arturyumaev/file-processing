@@ -70,7 +70,7 @@ func (a *app) Run() error {
 	defer a.db.Close()
 
 	a.log.Info().Msgf("starting server at :%s", os.Getenv("APPLICATION_PORT"))
-	go func() {
+	go func() { // Runs in infinite cycle
 		if err := a.server.ListenAndServe(); err != nil {
 			a.log.Error().Msgf("failed to listen and serve: %+v", err)
 		}
