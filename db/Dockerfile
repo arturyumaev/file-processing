@@ -1,0 +1,3 @@
+FROM gomicro/goose
+
+COPY ./${MIGRATION_TYPE} ./${MIGRATION_TYPE}

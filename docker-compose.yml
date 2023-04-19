@@ -10,7 +10,7 @@ services:
     volumes:
       - ./:/app
     depends_on:
-      - migrations
+      - seed
     environment:
       - APPLICATION_MODE=${APPLICATION_MODE}
       - APPLICATION_PORT=${APPLICATION_PORT}
@@ -20,12 +20,24 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
 
-  migrations:
-    build: ./migrations
-    command: make
+  seed:
+    build: ./db
+    command: goose -v -dir ./seed up
     depends_on:
-      - postgres
+      - migrations
     environment:
+      - MIGRATION_TYPE=seed
+      - GOOSE_DRIVER=${GOOSE_DRIVER}
+      - GOOSE_DBSTRING=postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?user=${POSTGRES_USER}&password=${POSTGRES_PASSWORD}&sslmode=disable
+
+  migrations:
+    build: ./db
+    command: goose -v -dir ./migrations up
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - MIGRATION_TYPE=migrations
       - GOOSE_DRIVER=${GOOSE_DRIVER}
       - GOOSE_DBSTRING=postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?user=${POSTGRES_USER}&password=${POSTGRES_PASSWORD}&sslmode=disable
 
@@ -38,3 +50,9 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
