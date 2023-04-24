@@ -3,6 +3,7 @@ package handler
 import (
 	"context"
 	"errors"
+	"mime/multipart"
 	"net/http"
 	"regexp"
 
@@ -14,13 +15,20 @@ var (
 	getFileRegexp = regexp.MustCompile(`^\/files\/(\w+)$`)
 )
 
+const (
+	MAX_FILE_SIZE_MB     = 10 << 20 // 10 Mb
+	FORM_FIELD_FILE_NAME = "file"
+)
+
 //go:generate mockgen -source=file_info.go -destination=../mocks/service.go
 type Service interface {
 	GetFileInfo(ctx context.Context, name string) (*file_info.FileInfo, error)
+	UploadFile(ctx context.Context, file multipart.File, handler *multipart.FileHeader) (*file_info.FileInfo, error)
 }
 
 type Handler interface {
 	GetFileInfo(w http.ResponseWriter, r *http.Request)
+	PostFile(w http.ResponseWriter, r *http.Request)
 }
 
 type handler struct {
@@ -40,8 +48,7 @@ type handler struct {
 // @Failure      500  {object}  file_info.HttpResponseErr
 // @Router       /files/{name} [get]
 func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodGet {
-		h.WriteError(w, http.StatusMethodNotAllowed, file_info.ErrMethodNotAllowed)
+	if !h.IsMethodValid(w, r, http.MethodGet) {
 		return
 	}
 
@@ -64,6 +71,37 @@ func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.WriteSuccess(w, file)
+}
+
+// PostFile godoc
+// @Summary      Accepts a file and puts it in database
+// @Description  Accepts a file and puts it in database
+// @Tags         files
+// @Produce      json
+// @Success      200  {object}  file_info.FileInfo
+// @Failure      400  {object}  file_info.HttpResponseErr
+// @Failure      500  {object}  file_info.HttpResponseErr
+// @Router       /files [post]
+func (h *handler) PostFile(w http.ResponseWriter, r *http.Request) {
+	if !h.IsMethodValid(w, r, http.MethodPost) {
+		return
+	}
+
+	r.ParseMultipartForm(MAX_FILE_SIZE_MB)
+	file, handler, err := r.FormFile(FORM_FIELD_FILE_NAME)
+	if err != nil {
+		h.WriteError(w, http.StatusBadRequest, file_info.ErrRetrievingFile)
+		return
+	}
+	defer file.Close()
+
+	fileInfo, err := h.svc.UploadFile(r.Context(), file, handler)
+	if err != nil {
+		h.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	h.WriteSuccess(w, fileInfo)
 }
 
 func New(svc Service) Handler {

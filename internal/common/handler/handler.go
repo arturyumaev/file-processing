@@ -4,9 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/arturyumaev/file-processing/internal/file_info"
 )
 
 type CommonHandler struct{}
+
+func (h *CommonHandler) IsMethodValid(w http.ResponseWriter, r *http.Request, method string) bool {
+	if r.Method != method {
+		h.WriteError(w, http.StatusMethodNotAllowed, file_info.ErrMethodNotAllowed)
+		return false
+	}
+	return true
+}
 
 func (h *CommonHandler) WriteError(w http.ResponseWriter, statusCode int, err error) {
 	w.WriteHeader(statusCode)

@@ -6,6 +6,7 @@ package mock_handler
 
 import (
 	context "context"
+	multipart "mime/multipart"
 	http "net/http"
 	reflect "reflect"
 
@@ -51,6 +52,21 @@ func (mr *MockServiceMockRecorder) GetFileInfo(ctx, name interface{}) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileInfo", reflect.TypeOf((*MockService)(nil).GetFileInfo), ctx, name)
 }
 
+// UploadFile mocks base method.
+func (m *MockService) UploadFile(ctx context.Context, file multipart.File, handler *multipart.FileHeader) (*file_info.FileInfo, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UploadFile", ctx, file, handler)
+	ret0, _ := ret[0].(*file_info.FileInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// UploadFile indicates an expected call of UploadFile.
+func (mr *MockServiceMockRecorder) UploadFile(ctx, file, handler interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFile", reflect.TypeOf((*MockService)(nil).UploadFile), ctx, file, handler)
+}
+
 // MockHandler is a mock of Handler interface.
 type MockHandler struct {
 	ctrl     *gomock.Controller
@@ -84,4 +100,16 @@ func (m *MockHandler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 func (mr *MockHandlerMockRecorder) GetFileInfo(w, r interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetFileInfo", reflect.TypeOf((*MockHandler)(nil).GetFileInfo), w, r)
+}
+
+// PostFile mocks base method.
+func (m *MockHandler) PostFile(w http.ResponseWriter, r *http.Request) {
+	m.ctrl.T.Helper()
+	m.ctrl.Call(m, "PostFile", w, r)
+}
+
+// PostFile indicates an expected call of PostFile.
+func (mr *MockHandlerMockRecorder) PostFile(w, r interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PostFile", reflect.TypeOf((*MockHandler)(nil).PostFile), w, r)
 }
