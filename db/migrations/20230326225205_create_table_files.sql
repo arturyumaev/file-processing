@@ -6,7 +6,8 @@ create table files (
   id        bigserial primary key, -- 64bit autoincrement
   status    varchar(100),
   timestamp timestamp with time zone default clock_timestamp(),
-  filename  varchar(500)
+  filename  varchar(500),
+  unique(filename, status)
 );
 
 create index files_filename_idx on files(filename);

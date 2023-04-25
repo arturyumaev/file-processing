@@ -11,3 +11,9 @@ where timestamp = (
   select max(timestamp) from files where filename = ?
 )
 `
+
+var InsertFile = `
+insert into files (status, filename)
+  values
+    ('recieved', ?)
+`

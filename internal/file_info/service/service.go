@@ -9,7 +9,8 @@ import (
 )
 
 type Repository interface {
-	FindOne(ctx context.Context, name string) (*file_info.FileInfo, error)
+	FindOne(ctx context.Context, filename string) (*file_info.FileInfo, error)
+	Create(ctx context.Context, filename string) error
 }
 
 type service struct {
@@ -23,9 +24,24 @@ func (svc *service) GetFileInfo(ctx context.Context, name string) (*file_info.Fi
 func (svc *service) UploadFile(
 	ctx context.Context,
 	file multipart.File,
-	handler *multipart.FileHeader,
+	fileHeader *multipart.FileHeader,
 ) (*file_info.FileInfo, error) {
-	return nil, nil
+	filename := fileHeader.Filename
+
+	if len(filename) > file_info.MAX_FILE_NAME_LENGTH {
+		return nil, file_info.ErrFileNameLengthTooLong
+	}
+
+	if err := svc.r.Create(ctx, filename); err != nil {
+		return nil, err
+	}
+
+	fileInfo, err := svc.GetFileInfo(ctx, filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return fileInfo, nil
 }
 
 func New(r Repository) handler.Service {

@@ -23,7 +23,7 @@ const (
 //go:generate mockgen -source=file_info.go -destination=../mocks/service.go
 type Service interface {
 	GetFileInfo(ctx context.Context, name string) (*file_info.FileInfo, error)
-	UploadFile(ctx context.Context, file multipart.File, handler *multipart.FileHeader) (*file_info.FileInfo, error)
+	UploadFile(ctx context.Context, file multipart.File, fileHeader *multipart.FileHeader) (*file_info.FileInfo, error)
 }
 
 type Handler interface {
@@ -88,14 +88,14 @@ func (h *handler) PostFile(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseMultipartForm(MAX_FILE_SIZE_MB)
-	file, handler, err := r.FormFile(FORM_FIELD_FILE_NAME)
+	file, fileHeader, err := r.FormFile(FORM_FIELD_FILE_NAME)
 	if err != nil {
 		h.WriteError(w, http.StatusBadRequest, file_info.ErrRetrievingFile)
 		return
 	}
 	defer file.Close()
 
-	fileInfo, err := h.svc.UploadFile(r.Context(), file, handler)
+	fileInfo, err := h.svc.UploadFile(r.Context(), file, fileHeader)
 	if err != nil {
 		h.WriteError(w, http.StatusInternalServerError, err)
 		return

@@ -53,18 +53,18 @@ func (mr *MockServiceMockRecorder) GetFileInfo(ctx, name interface{}) *gomock.Ca
 }
 
 // UploadFile mocks base method.
-func (m *MockService) UploadFile(ctx context.Context, file multipart.File, handler *multipart.FileHeader) (*file_info.FileInfo, error) {
+func (m *MockService) UploadFile(ctx context.Context, file multipart.File, fileHeader *multipart.FileHeader) (*file_info.FileInfo, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UploadFile", ctx, file, handler)
+	ret := m.ctrl.Call(m, "UploadFile", ctx, file, fileHeader)
 	ret0, _ := ret[0].(*file_info.FileInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // UploadFile indicates an expected call of UploadFile.
-func (mr *MockServiceMockRecorder) UploadFile(ctx, file, handler interface{}) *gomock.Call {
+func (mr *MockServiceMockRecorder) UploadFile(ctx, file, fileHeader interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFile", reflect.TypeOf((*MockService)(nil).UploadFile), ctx, file, handler)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFile", reflect.TypeOf((*MockService)(nil).UploadFile), ctx, file, fileHeader)
 }
 
 // MockHandler is a mock of Handler interface.
