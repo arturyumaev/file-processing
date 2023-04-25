@@ -8,8 +8,8 @@ import (
 )
 
 type FormFileMock struct {
-	fieldname string
 	filename  string
+	fieldname string
 }
 
 func (m *FormFileMock) Generate() (*bytes.Buffer, string) {

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -22,54 +22,90 @@ func getTestRouter() *http.ServeMux {
 }
 
 func TestHandler_getFileInfo(t *testing.T) {
-	t.Run("when file with name 'file1' is available", func(t *testing.T) {
-		ctx := context.Background()
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		fileInfoServiceMock := mock_file_info.NewMockService(ctrl)
+	tt := []struct {
+		name           string
+		expectedStatus int
+		expectedBody   string
+		imitateRequest func(*mock_file_info.MockService) *http.Request
+	}{
+		{
+			name:           "when method is invalid",
+			expectedStatus: http.StatusMethodNotAllowed,
+			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrMethodNotAllowed),
+			imitateRequest: func(ms *mock_file_info.MockService) *http.Request {
+				req, _ := http.NewRequest(http.MethodPost, "/files/file1", nil)
+				return req
+			},
+		},
+		{
+			name:           "when wrong path",
+			expectedStatus: http.StatusBadRequest,
+			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrEmptyParameterName),
+			imitateRequest: func(ms *mock_file_info.MockService) *http.Request {
+				req, _ := http.NewRequest(http.MethodGet, "/files/", nil)
+				return req
+			},
+		},
+		{
+			name:           "when file with name 'file1' is available",
+			expectedStatus: http.StatusOK,
+			expectedBody:   `{"id":0,"filename":"file1","status":"done","timestamp":""}`,
+			imitateRequest: func(ms *mock_file_info.MockService) *http.Request {
+				ctx := context.Background()
 
-		fileInfo := &file_info.FileInfo{
-			Filename: "file1",
-			Status:   "done",
-		}
-		fileInfoServiceMock.EXPECT().GetFileInfo(ctx, "file1").Return(fileInfo, nil)
+				fileInfo := &file_info.FileInfo{
+					Filename: "file1",
+					Status:   "done",
+				}
 
-		router := getTestRouter()
-		RegisterHandlers(router, fileInfoServiceMock)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/files/file1", nil)
+				ms.EXPECT().GetFileInfo(ctx, "file1").Return(fileInfo, nil)
+				req, _ := http.NewRequest(http.MethodGet, "/files/file1", nil)
 
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusOK, response.Code)
-		assert.JSONEq(
-			t,
-			`{"id":0,"filename":"file1","status":"done","timestamp":""}`,
-			response.Body.String(),
-		)
-	})
+				return req
+			},
+		},
+		{
+			name:           "when no such file",
+			expectedStatus: http.StatusNotFound,
+			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrNoSuchFile),
+			imitateRequest: func(ms *mock_file_info.MockService) *http.Request {
+				ctx := context.Background()
+				ms.EXPECT().GetFileInfo(ctx, "file4").Return(nil, file_info.ErrNoSuchFile)
+				req, _ := http.NewRequest(http.MethodGet, "/files/file4", nil)
 
-	t.Run("when no such file", func(t *testing.T) {
-		ctx := context.Background()
-		ctrl := gomock.NewController(t)
-		defer ctrl.Finish()
-		fileInfoServiceMock := mock_file_info.NewMockService(ctrl)
+				return req
+			},
+		},
+		{
+			name:           "when services return unknown error",
+			expectedStatus: http.StatusInternalServerError,
+			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, errors.New("unknown sql error")),
+			imitateRequest: func(ms *mock_file_info.MockService) *http.Request {
+				ctx := context.Background()
+				ms.EXPECT().GetFileInfo(ctx, "file4").Return(nil, errors.New("unknown sql error"))
+				req, _ := http.NewRequest(http.MethodGet, "/files/file4", nil)
 
-		fileInfoServiceMock.EXPECT().GetFileInfo(ctx, "file4").Return(nil, file_info.ErrNoSuchFile)
+				return req
+			},
+		},
+	}
 
-		router := getTestRouter()
-		RegisterHandlers(router, fileInfoServiceMock)
-		response := httptest.NewRecorder()
-		req, _ := http.NewRequest(http.MethodGet, "/files/file4", nil)
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			ctrl := gomock.NewController(t)
+			defer ctrl.Finish()
+			ms := mock_file_info.NewMockService(ctrl)
+			router := getTestRouter()
+			RegisterHandlers(router, ms)
 
-		router.ServeHTTP(response, req)
-		assert.Equal(t, http.StatusNotFound, response.Code)
+			response := httptest.NewRecorder()
+			req := tc.imitateRequest(ms)
+			router.ServeHTTP(response, req)
 
-		assert.JSONEq(
-			t,
-			fmt.Sprintf(`{"error":"%s"}`, file_info.ErrNoSuchFile.Error()),
-			response.Body.String(),
-		)
-	})
+			assert.Equal(t, tc.expectedStatus, response.Code)
+			assert.JSONEq(t, tc.expectedBody, response.Body.String())
+		})
+	}
 }
 
 func TestHandler_postFile(t *testing.T) {
@@ -109,12 +145,12 @@ func TestHandler_postFile(t *testing.T) {
 
 				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
 
-				fileMock := &FormFileMock{fieldname, filename}
+				fileMock := &FormFileMock{filename: filename}
 				body, contentType := fileMock.Generate()
 				req, err := http.NewRequest(http.MethodPost, "/files", body)
 				req.Header.Add("Content-Type", contentType)
 
-				file, handler, _ := req.FormFile(fieldname)
+				file, fileHeader, _ := req.FormFile(fieldname)
 				defer file.Close()
 
 				fileInfo := &file_info.FileInfo{
@@ -123,7 +159,7 @@ func TestHandler_postFile(t *testing.T) {
 					Status:   file_info.StatusRecieved,
 				}
 
-				ms.EXPECT().UploadFile(ctx, file, handler).Return(fileInfo, nil)
+				ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(fileInfo, nil)
 
 				return req, err
 			},
@@ -137,15 +173,15 @@ func TestHandler_postFile(t *testing.T) {
 
 				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
 
-				fileMock := &FormFileMock{fieldname, filename}
+				fileMock := &FormFileMock{filename: filename}
 				body, contentType := fileMock.Generate()
 				req, err := http.NewRequest(http.MethodPost, "/files", body)
 				req.Header.Add("Content-Type", contentType)
 
-				file, handler, _ := req.FormFile(fieldname)
+				file, fileHeader, _ := req.FormFile(fieldname)
 				defer file.Close()
 
-				ms.EXPECT().UploadFile(ctx, file, handler).Return(nil, errors.New("unexpected error"))
+				ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(nil, errors.New("unexpected error"))
 
 				return req, err
 			},
@@ -168,7 +204,7 @@ func TestHandler_postFile(t *testing.T) {
 			}
 			router.ServeHTTP(response, req)
 
-			actualBody, _ := ioutil.ReadAll(response.Body)
+			actualBody, _ := io.ReadAll(response.Body)
 
 			assert.Equal(t, tc.expectedStatus, response.Code)
 			assert.Equal(t, tc.expectedBody, string(actualBody))
