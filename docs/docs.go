@@ -16,6 +16,49 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/files": {
+            "post": {
+                "description": "Accepts a file and puts it in database",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Accepts a file and puts it in database",
+                "parameters": [
+                    {
+                        "type": "file",
+                        "description": "File",
+                        "name": "file",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.FileInfo"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/file_info.HttpResponseErr"
+                        }
+                    }
+                }
+            }
+        },
         "/files/{name}": {
             "get": {
                 "description": "get file info by its name",
@@ -49,12 +92,6 @@ const docTemplate = `{
                     },
                     "404": {
                         "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/file_info.HttpResponseErr"
-                        }
-                    },
-                    "408": {
-                        "description": "Request Timeout",
                         "schema": {
                             "$ref": "#/definitions/file_info.HttpResponseErr"
                         }

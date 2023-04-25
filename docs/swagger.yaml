@@ -36,6 +36,34 @@ info:
   title: File processing API
   version: "1.0"
 paths:
+  /files:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Accepts a file and puts it in database
+      parameters:
+      - description: File
+        in: formData
+        name: file
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/file_info.FileInfo'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/file_info.HttpResponseErr'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/file_info.HttpResponseErr'
+      summary: Accepts a file and puts it in database
+      tags:
+      - files
   /files/{name}:
     get:
       description: get file info by its name
@@ -57,10 +85,6 @@ paths:
             $ref: '#/definitions/file_info.HttpResponseErr'
         "404":
           description: Not Found
-          schema:
-            $ref: '#/definitions/file_info.HttpResponseErr'
-        "408":
-          description: Request Timeout
           schema:
             $ref: '#/definitions/file_info.HttpResponseErr'
         "500":

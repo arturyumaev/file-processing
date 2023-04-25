@@ -77,6 +77,8 @@ func (h *handler) GetFileInfo(w http.ResponseWriter, r *http.Request) {
 // @Summary      Accepts a file and puts it in database
 // @Description  Accepts a file and puts it in database
 // @Tags         files
+// @Accept       multipart/form-data
+// @Param        file formData file false "File"
 // @Produce      json
 // @Success      200  {object}  file_info.FileInfo
 // @Failure      400  {object}  file_info.HttpResponseErr
