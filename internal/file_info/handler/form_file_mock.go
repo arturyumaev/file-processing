@@ -5,6 +5,7 @@ import (
 	"io"
 	"mime/multipart"
 	"os"
+	"testing"
 )
 
 type FormFileMock struct {
@@ -12,7 +13,7 @@ type FormFileMock struct {
 	fieldname string
 }
 
-func (m *FormFileMock) Generate() (*bytes.Buffer, string) {
+func (m *FormFileMock) Generate(t *testing.T) (*bytes.Buffer, string) {
 	if m.fieldname == "" {
 		m.fieldname = FORM_FIELD_FILE_NAME
 	}
@@ -21,14 +22,12 @@ func (m *FormFileMock) Generate() (*bytes.Buffer, string) {
 		m.filename = "temp_file"
 	}
 
-	filePath := "./"
-
 	body := &bytes.Buffer{}
 	bodyWriter := multipart.NewWriter(body)
 
 	fileWriter, _ := bodyWriter.CreateFormFile(m.fieldname, m.filename)
 
-	file, _ := os.OpenFile(filePath+m.filename, os.O_WRONLY|os.O_CREATE, 0666)
+	file, _ := os.OpenFile(t.TempDir()+m.filename, os.O_WRONLY|os.O_CREATE, 0666)
 	defer file.Close()
 
 	io.Copy(fileWriter, file)

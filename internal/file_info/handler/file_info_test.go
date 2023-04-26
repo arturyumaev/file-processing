@@ -113,13 +113,13 @@ func TestHandler_postFile(t *testing.T) {
 		name           string
 		expectedStatus int
 		expectedBody   string
-		imitateRequest func(*mock_file_info.MockService) (*http.Request, error)
+		imitateRequest func(*testing.T, *mock_file_info.MockService) (*http.Request, error)
 	}{
 		{
 			name:           "when method is not allowed",
 			expectedStatus: http.StatusMethodNotAllowed,
 			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrMethodNotAllowed),
-			imitateRequest: func(ms *mock_file_info.MockService) (*http.Request, error) {
+			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
 				return http.NewRequest(http.MethodGet, "/files", nil)
 			},
 		},
@@ -127,9 +127,9 @@ func TestHandler_postFile(t *testing.T) {
 			name:           "when error while uploading file",
 			expectedStatus: http.StatusBadRequest,
 			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrRetrievingFile),
-			imitateRequest: func(ms *mock_file_info.MockService) (*http.Request, error) {
+			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
 				fileMock := &FormFileMock{fieldname: "wrong_field_name"}
-				body, contentType := fileMock.Generate()
+				body, contentType := fileMock.Generate(t)
 				req, err := http.NewRequest(http.MethodPost, "/files", body)
 				req.Header.Add("Content-Type", contentType)
 
@@ -140,13 +140,13 @@ func TestHandler_postFile(t *testing.T) {
 			name:           "when service responded ok",
 			expectedStatus: http.StatusOK,
 			expectedBody:   `{"id":1,"filename":"temp_file","status":"recieved","timestamp":""}`,
-			imitateRequest: func(ms *mock_file_info.MockService) (*http.Request, error) {
+			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
 				ctx := context.Background()
 
 				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
 
 				fileMock := &FormFileMock{filename: filename}
-				body, contentType := fileMock.Generate()
+				body, contentType := fileMock.Generate(t)
 				req, err := http.NewRequest(http.MethodPost, "/files", body)
 				req.Header.Add("Content-Type", contentType)
 
@@ -168,13 +168,13 @@ func TestHandler_postFile(t *testing.T) {
 			name:           "when service call failed",
 			expectedStatus: http.StatusInternalServerError,
 			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, errors.New("unexpected error")),
-			imitateRequest: func(ms *mock_file_info.MockService) (*http.Request, error) {
+			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
 				ctx := context.Background()
 
 				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
 
 				fileMock := &FormFileMock{filename: filename}
-				body, contentType := fileMock.Generate()
+				body, contentType := fileMock.Generate(t)
 				req, err := http.NewRequest(http.MethodPost, "/files", body)
 				req.Header.Add("Content-Type", contentType)
 
@@ -198,7 +198,7 @@ func TestHandler_postFile(t *testing.T) {
 			RegisterHandlers(router, ms)
 
 			response := httptest.NewRecorder()
-			req, err := tc.imitateRequest(ms)
+			req, err := tc.imitateRequest(t, ms)
 			if err != nil {
 				t.Fatal(err)
 			}
