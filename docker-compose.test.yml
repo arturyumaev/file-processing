@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      dockerfile: ./Dockerfile.test
+      context: ./
+    ports:
+    - ${APPLICATION_PORT}:${APPLICATION_PORT}
+    volumes:
+      - ./:/app
+    depends_on:
+      - seed
+    environment:
+      - APPLICATION_MODE=${APPLICATION_MODE}
+      - APPLICATION_PORT=${APPLICATION_PORT}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+
+  seed:
+    build: ./db
+    command: goose -v -dir ./seed up
+    depends_on:
+      - migrations
+    environment:
+      - MIGRATION_TYPE=seed
+      - GOOSE_DRIVER=${GOOSE_DRIVER}
+      - GOOSE_DBSTRING=postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?user=${POSTGRES_USER}&password=${POSTGRES_PASSWORD}&sslmode=disable
+
+  migrations:
+    build: ./db
+    command: goose -v -dir ./migrations up
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      - MIGRATION_TYPE=migrations
+      - GOOSE_DRIVER=${GOOSE_DRIVER}
+      - GOOSE_DBSTRING=postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}?user=${POSTGRES_USER}&password=${POSTGRES_PASSWORD}&sslmode=disable
+
+  postgres:
+    restart: always
+    image: postgres:latest
+    volumes:
+      - ./.database/data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

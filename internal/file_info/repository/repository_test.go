@@ -2,56 +2,56 @@ package repository
 
 import (
 	"context"
-	"database/sql"
-	"regexp"
+	"errors"
+	"log"
+	"os"
 	"testing"
 
-	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/jmoiron/sqlx"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/arturyumaev/file-processing/internal/file_info"
-	"github.com/arturyumaev/file-processing/internal/file_info/queries"
+	"github.com/arturyumaev/file-processing/pkg/client/postgres"
 )
+
+var db *sqlx.DB
+
+func TestMain(m *testing.M) {
+	ctx := context.Background()
+	conn, err := postgres.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(-1)
+	}
+
+	db = conn
+	defer db.Close()
+
+	code := m.Run()
+	os.Exit(code)
+}
 
 func TestRepository_findOne(t *testing.T) {
 	tt := []struct {
-		name             string
-		args             string
-		expected         *file_info.FileInfo
-		simulateSqlQuery func(sqlmock.Sqlmock)
-		expectedErr      error
+		name        string
+		arg         string
+		expected    *file_info.FileInfo
+		expectedErr error
 	}{
 		{
-			name: "when file is found",
-			args: "file1",
+			name: "when file found",
+			arg:  "file1",
 			expected: &file_info.FileInfo{
-				Id:        5,
+				Id:        4,
 				Filename:  "file1",
 				Status:    file_info.StatusDone,
-				TimeStamp: "08.04.2023 21:20:00 GMT+03",
-			},
-			simulateSqlQuery: func(mockSQL sqlmock.Sqlmock) {
-				rows := sqlmock.
-					NewRows([]string{"id", "filename", "status", "timestamp"}).
-					AddRow(5, "file1", "done", "08.04.2023 21:20:00 GMT+03")
-
-				mockSQL.
-					ExpectQuery(regexp.QuoteMeta(queries.SelectFileInfo)).
-					WithArgs("file1").
-					WillReturnRows(rows)
+				TimeStamp: "08.04.2023 18:20:00 GMT+00",
 			},
 		},
 		{
 			name:        "when file wasn't found",
-			args:        "wrong_file_name",
+			arg:         "wrong_file_name",
 			expectedErr: file_info.ErrNoSuchFile,
-			simulateSqlQuery: func(mockSQL sqlmock.Sqlmock) {
-				mockSQL.
-					ExpectQuery(regexp.QuoteMeta(queries.SelectFileInfo)).
-					WithArgs("wrong_file_name").
-					WillReturnError(sql.ErrNoRows)
-			},
 		},
 	}
 
@@ -59,22 +59,47 @@ func TestRepository_findOne(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			ctx := context.Background()
 
-			mockDB, mockSQL, err := sqlmock.New()
-			if err != nil {
-				t.Fatalf("an error '%s' was not expected when opening a stub database connection", err)
-			}
-			defer mockDB.Close()
+			repo := New(db)
 
-			db := sqlx.NewDb(mockDB, "sqlmock")
-			mockRepository := New(db)
-
-			tc.simulateSqlQuery(mockSQL)
-
-			actual, actualErr := mockRepository.FindOne(ctx, tc.args)
+			actual, actualErr := repo.FindOne(ctx, tc.arg)
 			if tc.expectedErr != nil {
-				assert.EqualError(t, actualErr, tc.expectedErr.Error())
+				assert.Equal(t, tc.expectedErr, actualErr)
 			}
-			assert.EqualValues(t, actual, tc.expected)
+			assert.EqualValues(t, tc.expected, actual)
+		})
+	}
+}
+
+func TestRepository_create(t *testing.T) {
+	tt := []struct {
+		name        string
+		arg         string
+		expectedErr error
+	}{
+		{
+			name:        "success",
+			arg:         "file10",
+			expectedErr: nil,
+		},
+		{
+			name:        "when file with name already exist",
+			arg:         "file1",
+			expectedErr: errors.New("duplicate key value"),
+		},
+	}
+
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			ctx := context.Background()
+
+			repo := New(db)
+
+			actualErr := repo.Create(ctx, tc.arg)
+			if tc.expectedErr == nil {
+				assert.Nil(t, actualErr)
+			} else {
+				assert.ErrorContains(t, actualErr, tc.expectedErr.Error())
+			}
 		})
 	}
 }
