@@ -21,6 +21,12 @@ import (
 	"github.com/arturyumaev/file-processing/pkg/logger"
 )
 
+var (
+	buildHash = "unset"
+	appName   = "file-processing"
+	buildTime = "unset"
+)
+
 type app struct {
 	server *http.Server
 	log    *zerolog.Logger
@@ -29,6 +35,12 @@ type app struct {
 
 func New() *app {
 	log := logger.Get()
+
+	log.Info().
+		Str("buildHash", buildHash).
+		Str("appName", appName).
+		Str("buildTime", buildTime).
+		Send()
 
 	ctx := context.Background()
 	db, err := postgres.NewClient(ctx)

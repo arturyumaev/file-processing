@@ -9,7 +9,11 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o /go/bin/api ./cmd/api/main.go
+RUN GOOS=linux GOARCH=amd64 \
+  go build \
+  -ldflags="-w -s -X main.buildHash=${COMMIT} -X main.buildTime=${BUILD_TIME}" \
+  -o /go/bin/api \
+  ./cmd/api/main.go
 
 FROM scratch
 

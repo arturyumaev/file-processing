@@ -16,10 +16,10 @@ import (
 func main() {
 	docs.SwaggerInfo.Host = "localhost:" + os.Getenv("APPLICATION_PORT")
 
-	logger := logger.Get().Error()
+	lg := logger.Get().Error()
 
-	app := app.New()
-	if err := app.Run(); err != nil {
-		logger.Msg(err.Error())
+	application := app.New()
+	if err := application.Run(); err != nil {
+		lg.Msg(err.Error())
 	}
 }

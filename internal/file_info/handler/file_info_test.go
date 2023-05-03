@@ -1,12 +1,15 @@
 package handler
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -16,9 +19,43 @@ import (
 	mock_file_info "github.com/arturyumaev/file-processing/internal/file_info/mocks"
 )
 
-func getTestRouter() *http.ServeMux {
-	mux := http.NewServeMux()
-	return mux
+const (
+	TEMP_FILE_NAME = "temp_file"
+)
+
+func generatePostRequestWithFile(t *testing.T, fieldname string) (*http.Request, error) {
+	body := &bytes.Buffer{}
+	bodyWriter := multipart.NewWriter(body)
+
+	fileWriter, err := bodyWriter.CreateFormFile(fieldname, TEMP_FILE_NAME)
+	if err != nil {
+		return nil, err
+	}
+
+	emptyFileContent := strings.NewReader("")
+
+	_, err = io.Copy(fileWriter, emptyFileContent)
+	if err != nil {
+		return nil, err
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	contentType := bodyWriter.FormDataContentType()
+	err = bodyWriter.Close()
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "/files", body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Add("Content-Type", contentType)
+
+	return req, nil
 }
 
 func TestHandler_getFileInfo(t *testing.T) {
@@ -95,12 +132,11 @@ func TestHandler_getFileInfo(t *testing.T) {
 			ctrl := gomock.NewController(t)
 			defer ctrl.Finish()
 			ms := mock_file_info.NewMockService(ctrl)
-			router := getTestRouter()
-			RegisterHandlers(router, ms)
+			h := New(ms)
 
 			response := httptest.NewRecorder()
 			req := tc.imitateRequest(ms)
-			router.ServeHTTP(response, req)
+			h.GetFileInfo(response, req)
 
 			assert.Equal(t, tc.expectedStatus, response.Code)
 			assert.JSONEq(t, tc.expectedBody, response.Body.String())
@@ -109,105 +145,133 @@ func TestHandler_getFileInfo(t *testing.T) {
 }
 
 func TestHandler_postFile(t *testing.T) {
-	tt := []struct {
-		name           string
-		expectedStatus int
-		expectedBody   string
-		imitateRequest func(*testing.T, *mock_file_info.MockService) (*http.Request, error)
-	}{
-		{
-			name:           "when method is not allowed",
-			expectedStatus: http.StatusMethodNotAllowed,
-			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrMethodNotAllowed),
-			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
-				return http.NewRequest(http.MethodGet, "/files", nil)
-			},
-		},
-		{
-			name:           "when error while uploading file",
-			expectedStatus: http.StatusBadRequest,
-			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, file_info.ErrRetrievingFile),
-			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
-				fileMock := &FormFileMock{fieldname: "wrong_field_name"}
-				body, contentType := fileMock.Generate(t)
-				req, err := http.NewRequest(http.MethodPost, "/files", body)
-				req.Header.Add("Content-Type", contentType)
+	ctx := context.Background()
 
-				return req, err
-			},
-		},
-		{
-			name:           "when service responded ok",
-			expectedStatus: http.StatusOK,
-			expectedBody:   `{"id":1,"filename":"temp_file","status":"recieved","timestamp":""}`,
-			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
-				ctx := context.Background()
+	t.Run("when method not allowed", func(t *testing.T) {
+		expectedStatus := http.StatusMethodNotAllowed
+		expectedBody := fmt.Sprintf(`{"error":"%s"}`, file_info.ErrMethodNotAllowed)
 
-				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		ms := mock_file_info.NewMockService(ctrl)
 
-				fileMock := &FormFileMock{filename: filename}
-				body, contentType := fileMock.Generate(t)
-				req, err := http.NewRequest(http.MethodPost, "/files", body)
-				req.Header.Add("Content-Type", contentType)
+		h := New(ms)
 
-				file, fileHeader, _ := req.FormFile(fieldname)
-				defer file.Close()
+		rw := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodGet, "/files", nil)
+		if err != nil {
+			t.Error(err)
+		}
 
-				fileInfo := &file_info.FileInfo{
-					Id:       1,
-					Filename: filename,
-					Status:   file_info.StatusRecieved,
-				}
+		h.PostFile(rw, req)
 
-				ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(fileInfo, nil)
+		actualBody, err := io.ReadAll(rw.Body)
+		if err != nil {
+			t.Error(err)
+		}
 
-				return req, err
-			},
-		},
-		{
-			name:           "when service call failed",
-			expectedStatus: http.StatusInternalServerError,
-			expectedBody:   fmt.Sprintf(`{"error":"%s"}`, errors.New("unexpected error")),
-			imitateRequest: func(t *testing.T, ms *mock_file_info.MockService) (*http.Request, error) {
-				ctx := context.Background()
+		assert.Equal(t, expectedStatus, rw.Code)
+		assert.Equal(t, expectedBody, string(actualBody))
+	})
 
-				filename, fieldname := "temp_file", FORM_FIELD_FILE_NAME
+	t.Run("when error while uploading file", func(t *testing.T) {
+		expectedStatus := http.StatusBadRequest
+		expectedBody := fmt.Sprintf(`{"error":"%s"}`, file_info.ErrRetrievingFile)
 
-				fileMock := &FormFileMock{filename: filename}
-				body, contentType := fileMock.Generate(t)
-				req, err := http.NewRequest(http.MethodPost, "/files", body)
-				req.Header.Add("Content-Type", contentType)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		ms := mock_file_info.NewMockService(ctrl)
 
-				file, fileHeader, _ := req.FormFile(fieldname)
-				defer file.Close()
+		h := New(ms)
 
-				ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(nil, errors.New("unexpected error"))
+		rw := httptest.NewRecorder()
+		req, err := generatePostRequestWithFile(t, "wrong_field_name")
+		if err != nil {
+			t.Log(err)
+			t.Error(err)
+		}
 
-				return req, err
-			},
-		},
-	}
+		h.PostFile(rw, req)
 
-	for _, tc := range tt {
-		t.Run(tc.name, func(t *testing.T) {
-			ctrl := gomock.NewController(t)
-			defer ctrl.Finish()
-			ms := mock_file_info.NewMockService(ctrl)
+		actualBody, err := io.ReadAll(rw.Body)
+		if err != nil {
+			t.Error(err)
+		}
 
-			router := getTestRouter()
-			RegisterHandlers(router, ms)
+		assert.Equal(t, expectedStatus, rw.Code)
+		assert.Equal(t, expectedBody, string(actualBody))
+	})
 
-			response := httptest.NewRecorder()
-			req, err := tc.imitateRequest(t, ms)
-			if err != nil {
-				t.Fatal(err)
-			}
-			router.ServeHTTP(response, req)
+	t.Run("when service responded ok", func(t *testing.T) {
+		expectedStatus := http.StatusOK
+		expectedBody := `{"id":1,"filename":"temp_file","status":"recieved","timestamp":""}`
 
-			actualBody, _ := io.ReadAll(response.Body)
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		ms := mock_file_info.NewMockService(ctrl)
 
-			assert.Equal(t, tc.expectedStatus, response.Code)
-			assert.Equal(t, tc.expectedBody, string(actualBody))
-		})
-	}
+		h := New(ms)
+
+		rw := httptest.NewRecorder()
+
+		fieldname := FORM_FIELD_FILE_NAME
+
+		req, err := generatePostRequestWithFile(t, fieldname)
+		if err != nil {
+			t.Error(err)
+		}
+
+		file, fileHeader, _ := req.FormFile(fieldname)
+		defer file.Close()
+
+		fileInfo := &file_info.FileInfo{
+			Id:       1,
+			Filename: TEMP_FILE_NAME,
+			Status:   file_info.StatusRecieved,
+		}
+
+		ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(fileInfo, nil)
+
+		h.PostFile(rw, req)
+
+		actualBody, err := io.ReadAll(rw.Body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.Equal(t, expectedStatus, rw.Code)
+		assert.Equal(t, expectedBody, string(actualBody))
+	})
+
+	t.Run("when service call failed", func(t *testing.T) {
+		expectedStatus := http.StatusInternalServerError
+		expectedBody := `{"error":"unexpected error"}`
+
+		ctrl := gomock.NewController(t)
+		defer ctrl.Finish()
+		ms := mock_file_info.NewMockService(ctrl)
+
+		h := New(ms)
+
+		rw := httptest.NewRecorder()
+		req, err := generatePostRequestWithFile(t, FORM_FIELD_FILE_NAME)
+		if err != nil {
+			t.Error(err)
+		}
+
+		file, fileHeader, _ := req.FormFile(FORM_FIELD_FILE_NAME)
+		defer file.Close()
+
+		ms.EXPECT().UploadFile(ctx, file, fileHeader).Return(nil, errors.New("unexpected error"))
+
+		h.PostFile(rw, req)
+
+		actualBody, err := io.ReadAll(rw.Body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		assert.Equal(t, expectedStatus, rw.Code)
+		assert.Equal(t, expectedBody, string(actualBody))
+	})
 }
